@@ -1,16 +1,27 @@
+{% assign menu_type = section.settings.menu_open_type | default: 'hover' %}
+
 {% for link in linklist %}
 {% if link.links != blank %}
-    <div class="relative dropdownnav">
-        <button class="main-menu dropdown-toggle flex items-center gap-2">
-          {{ link.title }}
-          <span class="svg-wrapper up-arrow hidden">
+    <div class="relative dropdownnav {% if menu_type == 'hover' %}group{% endif %}">
+        <button class="main-menu dropdown-toggle flex items-center gap-2 {% if menu_type == 'click' %}{% else %}cursor-pointer{% endif %}">
+          {% if menu_type == 'click' %}
+            {{ link.title }}
+          {% else %}
+            <a href="{{ link.url }}" aria-label="{{ link.title }}">{{ link.title }}</a>
+          {% endif %}
+          <span class="svg-wrapper up-arrow hidden px-1.5 py-2 {% if menu_type == 'hover' %}group-hover:inline{% endif %}">
             {{- 'up_arrow.svg' | inline_asset_content -}}
           </span>
-          <span class="svg-wrapper down-arrow">
+          <span class="svg-wrapper down-arrow px-1.5 py-2 {% if menu_type == 'hover' %}group-hover:hidden{% endif %}">
             {{- 'down_arrow.svg' | inline_asset_content -}}
           </span>
         </button>
-        <div class="absolute left-0 bg-white shadow-lg hidden w-56 rounded-md py-2 dropdown-menu z-10">
+        <div class="absolute left-0 bg-white shadow-lg w-56 rounded-md py-2 dropdown-menu z-10
+          {% if menu_type == 'hover' %}
+            opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300
+          {% else %}
+            hidden
+          {% endif %}">
           {% for sub_link in link.links %}
             <div class="relative">
               <button class="submenu-toggle flex justify-between items-center w-full px-4 py-2">
@@ -26,7 +37,12 @@
               </button>
 
               {% if sub_link.links != blank %}
-                <div class="absolute left-full top-0 hidden bg-white shadow-lg w-56 rounded-md py-2 submenu">
+                <div class="absolute left-full top-0 bg-white shadow-lg w-56 rounded-md py-2 submenu
+                  {% if menu_type == 'hover' %}
+                    opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300
+                  {% else %}
+                    hidden
+                  {% endif %}">
                   {% for sub_sub_link in sub_link.links %}
                     <a href="{{ sub_sub_link.url }}" class="block px-4 py-2" aria-label="{{ sub_sub_link.title }}">
                       {{ sub_sub_link.title }}
@@ -45,38 +61,138 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    $(document).on("click", ".dropdown-toggle", function (e) {
-      e.preventDefault();
-      const $this = $(this);
-      const $dropdownMenu = $this.closest(".dropdownnav").find(".dropdown-menu").first();
-      $(".dropdown-menu").not($dropdownMenu).addClass("hidden");
-      $(".dropdown-toggle").not($this).removeClass("active");
-      $dropdownMenu.toggleClass("hidden");
-      $this.toggleClass("active");
-    });
-    $(document).on("click", ".submenu-toggle", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      const $this = $(this);
-      const $submenu = $this.closest("div.relative").find(".submenu").first();
-      $this.closest(".dropdown-menu").find(".submenu").not($submenu).addClass("hidden");
-      $submenu.toggleClass("hidden");
-    });
-    $(document).on("click", function (e) {
-      if (!$(e.target).closest(".dropdownnav").length) {
-        $(".dropdown-menu, .submenu").addClass("hidden");
-        $(".dropdown-toggle").removeClass("active");
-      }
-    });
-    $(".dropdownnav").on("focusout", function () {
-      const $this = $(this);
-      setTimeout(() => {
-        if (!$this.has(document.activeElement).length) {
-          $this.find(".dropdown-menu, .submenu").addClass("hidden");
-          $this.find(".dropdown-toggle").removeClass("active");
+    const menuType = '{{ menu_type }}';
+    
+    if (menuType === 'click') {
+      // Click-based menu logic (existing functionality)
+      $(document).on("click", ".dropdown-toggle", function (e) {
+        e.preventDefault();
+        const $this = $(this);
+        const $dropdownMenu = $this.closest(".dropdownnav").find(".dropdown-menu").first();
+        $(".dropdown-menu").not($dropdownMenu).addClass("hidden");
+        $(".dropdown-toggle").not($this).removeClass("active");
+        $dropdownMenu.toggleClass("hidden");
+        $this.toggleClass("active");
+      });
+      
+      $(document).on("click", ".submenu-toggle", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $this = $(this);
+        const $submenu = $this.closest("div.relative").find(".submenu").first();
+        $this.closest(".dropdown-menu").find(".submenu").not($submenu).addClass("hidden");
+        $submenu.toggleClass("hidden");
+      });
+      
+      $(document).on("click", function (e) {
+        if (!$(e.target).closest(".dropdownnav").length) {
+          $(".dropdown-menu, .submenu").addClass("hidden");
+          $(".dropdown-toggle").removeClass("active");
         }
-      }, 10);
-    });
+      });
+      
+      $(".dropdownnav").on("focusout", function () {
+        const $this = $(this);
+        setTimeout(() => {
+          if (!$this.has(document.activeElement).length) {
+            $this.find(".dropdown-menu, .submenu").addClass("hidden");
+            $this.find(".dropdown-toggle").removeClass("active");
+          }
+        }, 10);
+      });
+    } else {
+      // Hover-based menu logic (like mega-menu)
+      const dropdownNavs = document.querySelectorAll(".dropdownnav");
+      
+      dropdownNavs.forEach(dropdownNav => {
+        const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
+        const submenus = dropdownNav.querySelectorAll(".submenu");
+        
+        // Close menu when mouse leaves the dropdown area
+        dropdownNav.addEventListener("mouseleave", function() {
+          // Force hide the menu by removing all hover classes and setting styles directly
+          dropdownMenu.style.opacity = "0";
+          dropdownMenu.style.visibility = "hidden";
+          submenus.forEach(submenu => {
+            submenu.style.opacity = "0";
+            submenu.style.visibility = "hidden";
+          });
+        });
+        
+        // Ensure menu opens when mouse enters
+        dropdownNav.addEventListener("mouseenter", function() {
+          // Force show the menu by setting styles directly
+          dropdownMenu.style.opacity = "1";
+          dropdownMenu.style.visibility = "visible";
+        });
+        
+        // Handle submenu hover
+        submenus.forEach(submenu => {
+          const submenuToggle = submenu.previousElementSibling;
+          
+          submenuToggle.addEventListener("mouseenter", function() {
+            // Show submenu
+            submenu.style.opacity = "1";
+            submenu.style.visibility = "visible";
+          });
+          
+          submenuToggle.addEventListener("mouseleave", function() {
+            // Hide submenu
+            submenu.style.opacity = "0";
+            submenu.style.visibility = "hidden";
+          });
+          
+          submenu.addEventListener("mouseenter", function() {
+            // Keep submenu visible when hovering over it
+            submenu.style.opacity = "1";
+            submenu.style.visibility = "visible";
+          });
+          
+          submenu.addEventListener("mouseleave", function() {
+            // Hide submenu when leaving it
+            submenu.style.opacity = "0";
+            submenu.style.visibility = "hidden";
+          });
+        });
+      });
+      
+      // Close all menus when clicking outside
+      document.addEventListener("click", function (e) {
+        const isInsideMenu = e.target.closest(".dropdownnav");
+        if (!isInsideMenu) {
+          document.querySelectorAll(".dropdownnav").forEach(dropdownNav => {
+            const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
+            const submenus = dropdownNav.querySelectorAll(".submenu");
+            
+            // Force hide the menu by setting styles directly
+            dropdownMenu.style.opacity = "0";
+            dropdownMenu.style.visibility = "hidden";
+            submenus.forEach(submenu => {
+              submenu.style.opacity = "0";
+              submenu.style.visibility = "hidden";
+            });
+          });
+        }
+      });
+      
+      // Close menu when pressing Escape key
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          document.querySelectorAll(".dropdownnav").forEach(dropdownNav => {
+            const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
+            const submenus = dropdownNav.querySelectorAll(".submenu");
+            
+            // Force hide the menu by setting styles directly
+            dropdownMenu.style.opacity = "0";
+            dropdownMenu.style.visibility = "hidden";
+            submenus.forEach(submenu => {
+              submenu.style.opacity = "0";
+              submenu.style.visibility = "hidden";
+            });
+          });
+        }
+      });
+    }
   });
 </script>
 

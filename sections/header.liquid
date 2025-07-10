@@ -131,9 +131,9 @@ input::placeholder {
         </div>
         <nav class="hidden md:flex items-center space-x-6 capitalize">
             {% if section.settings.menu_type_desktop == 'dropdown' %}
-              {% render 'dropdown-menu' linklist:section.settings.menu.links %}
+              {% render 'dropdown-menu' linklist:section.settings.menu.links, menu_open_type:section.settings.menu_open_type %}
             {%- else -%}
-              {% render 'mega-menu' linklist:section.settings.menu.links, menu_open_type:section.settings.menu_open_type, mega_menu_style:section.settings.mega_menu_style %}
+              {% render 'mega-menu' linklist:section.settings.menu.links, menu_open_type:section.settings.menu_open_type %}
             {%- endif -%}
             {%- if section.settings.enable_search -%}
               <button class="search-bar-desktop hidden lg:flex items-center bg-[#F1F3F0] gap-1 px-2 py-1 w-56 my-3"
@@ -271,18 +271,6 @@ input::placeholder {
       "label": "Menu Open on"
     },
     {
-      "type": "select",
-      "id": "mega_menu_style",
-      "label": "Mega menu style",
-      "default": "list",
-      "options": [
-        { "value": "list", "label": "List" },
-        { "value": "grid", "label": "Grid" }
-      ],
-      "visible_if": "{{ section.settings.menu_type_desktop == 'mega' }}",
-      "info": "If grid is chosen, then collections will be displayed instead of chosen menu"
-    },
-    {
       "type": "checkbox",
       "id": "enable_sticky_header",
       "default": false,
@@ -299,142 +287,6 @@ input::placeholder {
       "id": "enable_wishlist",
       "default": false,
       "label": "Enable Wishlist"
-    },
-    {
-      "type": "header",
-      "content": "Mega menu Grid",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "inline_richtext",
-      "id": "tagline",
-      "label": "Tagline",
-      "default": "Find the product that suits you best",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "inline_richtext",
-      "id": "heading",
-      "label": "Heading",
-      "default": "How would you like to take care of yourself today?",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "richtext",
-      "id": "description",
-      "label": "Description",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "select",
-      "id": "content_alignment",
-      "label": "Heading Alignment",
-      "options": [
-        { "value": "left", "label": "Left" },
-        { "value": "center", "label": "Center" },
-        { "value": "right", "label": "Right" }
-      ],
-      "default": "center",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "range",
-      "id": "columns_desktop",
-      "label": "Max columns on desktop",
-      "min": 2,
-      "max": 6,
-      "default": 4,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "range",
-      "id": "max_collections",
-      "label": "Max collections to show",
-      "min": 1,
-      "max": 20,
-      "default": 8,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "select",
-      "id": "display_type",
-      "label": "Display type",
-      "options": [
-        { "value": "grid", "label": "Grid" },
-        { "value": "slider", "label": "Slider" }
-      ],
-      "default": "grid",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "checkbox",
-      "id": "show_dots",
-      "label": "Show dots (slider only)",
-      "default": true,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "checkbox",
-      "id": "show_arrows",
-      "label": "Show arrows (slider only)",
-      "default": true,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "checkbox",
-      "id": "rotate_slides",
-      "label": "t:sections.featuredArticles.settings.rotate_slide",
-      "default": true,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "checkbox",
-      "id": "swipe_mobile",
-      "label": "Enable swipe on mobile",
-      "default": true,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "header",
-      "content": "Collection",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "select",
-      "id": "bg_color",
-      "label": "Collection Theme",
-      "options": [
-        { "value": "dark", "label": "Dark" },
-        { "value": "light", "label": "Light" }
-      ],
-      "default": "light",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "checkbox",
-      "id": "show_icon",
-      "label": "Show arrow icon",
-      "default": true,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "header",
-      "content": "View all Button",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "checkbox",
-      "id": "show_button",
-      "label": "Show view all button",
-      "default": true,
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
-    },
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "Button Label",
-      "default": "View All",
-      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
     },
   ],
   "blocks": [

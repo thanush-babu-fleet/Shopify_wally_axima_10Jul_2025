@@ -1,5 +1,4 @@
 {% assign menu_type = section.settings.menu_open_type | default: 'hover' %}
-{% assign menu_style = section.settings.mega_menu_style | default: 'list' %}
 
 {% style %}
 .custom-collection-grid-section {
@@ -82,54 +81,7 @@
             assign megamenu_grid = 'sm:grid-cols-1'
           endif
         -%}
-    
-        {% if menu_style == "grid" %}
-          <div class="custom-collection-grid-section">
-           {% assign text_alignment_class = '' %}
-            {% case section.settings.content_alignment %}
-              {% when 'left' %}
-                {% assign text_alignment_class = 'text-left' %}
-              {% when 'right' %}
-                {% assign text_alignment_class = 'text-right' %}
-              {% else %}
-                {% assign text_alignment_class = 'text-center' %}
-            {% endcase %}
-          
-            <!-- {% if section.settings.tagline != null or section.settings.heading != null or section.settings.description != null %}
-              <div class="flex justify-between items-center gap-2 mb-9 md:mb-8 {{ text_alignment_class }} {% if settings.layout_style == 'detached' %} container px-4 mx-auto {% endif %}">
-                <div class="collection-grid w-full">
-                    {% if section.settings.tagline != blank %}
-                        <span class="tagline font-semibold">{{ section.settings.tagline }}</span>
-                    {% endif %}
-                    {% if section.settings.heading != blank %}
-                        <h2 class="large{% if section.settings.tagline != blank %} mt-4 {% endif %}">{{ section.settings.heading }}</h2>
-                    {% endif %}
-            
-                    {% if section.settings.description != blank %}
-                        <div class="rte richtext my-4">{{ section.settings.description }}</div>
-                    {% endif %}
-                 </div>
-               </div>
-            {% endif %} -->
-          
-            {% assign columns = section.settings.columns_desktop | default: 4 %}
-            {% assign display_type = section.settings.display_type | default: 'grid' %}
-            {% assign max_collections = section.settings.max_collections | default: 8 %}
-            {% assign collection_blocks = section.blocks | where: "type", "collection" %}
-  
-            <div class="{% if display_type == 'slider' %} collection-slider-grid-{{ section.id }} {% endif %} grid grid-cols-1 sm:grid-cols-2 md:grid-cols-{{ columns }} gap-4 mb-6 items-stretch">
-              {% for block in collection_blocks limit: max_collections %}
-                {% render 'custom-collection-card', block: block, section: section %}
-              {% endfor %}
-            </div>
-           {% if section.settings.show_button %}
-            <p class="text-center font-bold underline underline-offset-4 !leading-normal text-xl mt-8">
-              <a href="/collections">{{ section.settings.button_label }}</a>
-            </p>
-           {% endif %}
-        </div>
-        {% else %}
-          <div class="grid grid-cols-1 {{ megamenu_grid }} gap-4">
+        <div class="grid grid-cols-1 {{ megamenu_grid }} gap-4">
           {% for sub_link in link.links %}
             <div>
               <a href="{{ sub_link.url }}" class="subheading" style="font-family: var(--heading-font)" aria-label="{{ sub_link.title }}">
@@ -185,8 +137,6 @@
             {% endif %}
           {% endfor %}
         </div>
-        {% endif %}
-    
       </div>
     </div>
   {% else %}
