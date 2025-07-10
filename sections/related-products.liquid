@@ -96,67 +96,116 @@
 <script>
   function initSlider_{{ section.id | replace: '-', '_' }}() {
     const slider = $('.related-slider-{{ section.id }}');
+    
+    // Clean up existing slider if it exists
     if (slider.hasClass('slick-initialized')) {
       slider.slick('unslick');
     }
 
-    slider.on('init', function (event, slick) {
-    {% if settings.layout_style == 'detached' %}
-      const slickList = slider.find('.slick-list').get(0);
-      if (slickList && !slickList.closest('.container')) {
-        const wrapperDiv = document.createElement('div');
-        wrapperDiv.classList.add('container', 'px-4', 'mx-auto');
+    // Wait a bit to ensure DOM is ready
+    setTimeout(() => {
+      slider.on('init', function (event, slick) {
+        {% if settings.layout_style == 'detached' %}
+          const slickList = slider.find('.slick-list').get(0);
+          if (slickList && !slickList.closest('.container')) {
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.classList.add('container', 'px-4', 'mx-auto');
 
-        slickList.parentNode.insertBefore(wrapperDiv, slickList);
-        wrapperDiv.appendChild(slickList);
-      }
-    {% endif %}
-  });
+            slickList.parentNode.insertBefore(wrapperDiv, slickList);
+            wrapperDiv.appendChild(slickList);
+          }
+        {% endif %}
+      });
 
-    slider.slick({
-      slidesToShow: {{ section.settings.columns_desktop }},
-      slidesToScroll: 1,
-      arrows: {{ section.settings.show_arrows }},
-      dots: {{ section.settings.show_dots }},
-      prevArrow: false,
-      nextArrow: '<button type="button" class="slick-next custom-next button icon-btn" aria-label="Next slide"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" fill="white"/><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" stroke="#273025"/><path d="M20.4434 13.8798C20.7167 13.6065 21.1602 13.6065 21.4336 13.8798L27.0586 19.5048L27.1484 19.6142C27.1654 19.6399 27.1772 19.6681 27.1904 19.6953C27.1962 19.7072 27.2039 19.7182 27.209 19.7304C27.2174 19.7507 27.2221 19.7721 27.2285 19.7929C27.2489 19.8586 27.2637 19.9276 27.2637 19.9999C27.2637 20.0589 27.252 20.1152 27.2383 20.1699C27.2304 20.2013 27.2242 20.2333 27.2119 20.2636C27.2112 20.2654 27.2097 20.2668 27.209 20.2685C27.2063 20.275 27.2021 20.2807 27.1992 20.2871C27.1833 20.3223 27.1656 20.3569 27.1436 20.3896C27.1182 20.4272 27.0905 20.4631 27.0586 20.4951L21.4336 26.1201C21.1603 26.3934 20.7167 26.3932 20.4434 26.1201C20.17 25.8467 20.17 25.4032 20.4434 25.1298L24.873 20.7001H13.4385C13.0519 20.7001 12.7384 20.3865 12.7383 19.9999C12.7383 19.6133 13.0519 19.2998 13.4385 19.2998H24.873L20.4434 14.8701C20.17 14.5967 20.17 14.1532 20.4434 13.8798Z" fill="#273025"/></svg></button>',
-      infinite: true,
-      swipe: true,
-      responsive: [
-        {
-          breakpoint: 1023,
-          settings: {
-            slidesToShow: 3
+      slider.slick({
+        slidesToShow: {{ section.settings.columns_desktop }},
+        slidesToScroll: 1,
+        arrows: true,
+        dots: {{ section.settings.show_dots }},
+        prevArrow: false,
+        nextArrow: '<button type="button" class="slick-next custom-next button icon-btn" aria-label="Next slide"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" fill="white"/><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" stroke="#273025"/><path d="M20.4434 13.8798C20.7167 13.6065 21.1602 13.6065 21.4336 13.8798L27.0586 19.5048L27.1484 19.6142C27.1654 19.6399 27.1772 19.6681 27.1904 19.6953C27.1962 19.7072 27.2039 19.7182 27.209 19.7304C27.2174 19.7507 27.2221 19.7721 27.2285 19.7929C27.2489 19.8586 27.2637 19.9276 27.2637 19.9999C27.2637 20.0589 27.252 20.1152 27.2383 20.1699C27.2304 20.2013 27.2242 20.2333 27.2119 20.2636C27.2112 20.2654 27.2097 20.2668 27.209 20.2685C27.2063 20.275 27.2021 20.2807 27.1992 20.2871C27.1833 20.3223 27.1656 20.3569 27.1436 20.3896C27.1182 20.4272 27.0905 20.4631 27.0586 20.4951L21.4336 26.1201C21.1603 26.3934 20.7167 26.3932 20.4434 26.1201C20.17 25.8467 20.17 25.4032 20.4434 25.1298L24.873 20.7001H13.4385C13.0519 20.7001 12.7384 20.3865 12.7383 19.9999C12.7383 19.6133 13.0519 19.2998 13.4385 19.2998H24.873L20.4434 14.8701C20.17 14.5967 20.17 14.1532 20.4434 13.8798Z" fill="#273025"/></svg></button>',
+        infinite: true,
+        swipe: true,
+        responsive: [
+          {
+            breakpoint: 1023,
+            settings: {
+              slidesToShow: 3
+            }
+          },
+          {
+            breakpoint: 768,
+            settings: {
+              slidesToShow: 2
+            }
+          },
+          {
+            breakpoint: 480,
+            settings: {
+              slidesToShow: 1,
+              centerMode: true,
+              centerPadding: '10% 0 0'
+            }
           }
-        },
-        {
-          breakpoint: 768,
-          settings: {
-            slidesToShow: 2
-          }
-        },
-        {
-          breakpoint: 480,
-          settings: {
-            slidesToShow: 1,
-            centerMode: true,
-            centerPadding: '10% 0 0'
-          }
-        }
-      ]
-    });
+        ]
+      });
+    }, 50);
   }
 
   function watchSliderLoad_{{ section.id | replace: '-', '_' }}() {
-    const observer = new MutationObserver(() => {
-      const slider = document.querySelector('.related-slider-{{ section.id }}');
-      if (slider && !slider.classList.contains('slick-initialized')) {
-        initSlider_{{ section.id | replace: '-', '_' }}();
-        observer.disconnect();
-        if (typeof initQuickView === 'function') initQuickView();
-        if (typeof loadRatingsForDynamicContent === 'function') {
-          loadRatingsForDynamicContent();
+    let sliderInitialized = false;
+    let ratingsLoaded = false;
+    let ratingsLoadTimeout;
+    
+    const observer = new MutationObserver((mutations) => {
+      // Check for slider initialization
+      if (!sliderInitialized) {
+        const slider = document.querySelector('.related-slider-{{ section.id }}');
+        if (slider && !slider.classList.contains('slick-initialized')) {
+          console.log('Initializing related products slider');
+          initSlider_{{ section.id | replace: '-', '_' }}();
+          sliderInitialized = true;
+          
+          // Initialize quick view after slider is ready
+          setTimeout(() => {
+            if (typeof window.initQuickViewButtons === 'function') {
+              window.initQuickViewButtons();
+            }
+          }, 100);
         }
+      }
+      
+      // Check for ratings loading (only if not already loaded)
+      if (!ratingsLoaded) {
+        const hasProductRatings = mutations.some(mutation => {
+          return Array.from(mutation.addedNodes).some(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              return node.querySelector('.product-rating[data-product-id]') || 
+                     node.classList.contains('product-rating');
+            }
+            return false;
+          });
+        });
+        
+        if (hasProductRatings && typeof loadProductCardRatings === 'function') {
+          // Clear existing timeout
+          if (ratingsLoadTimeout) {
+            clearTimeout(ratingsLoadTimeout);
+          }
+          
+          // Debounce the ratings loading
+          ratingsLoadTimeout = setTimeout(() => {
+            console.log('Product cards detected, loading ratings...');
+            loadProductCardRatings();
+            ratingsLoaded = true;
+          }, 500);
+        }
+      }
+      
+      // Disconnect observer if both tasks are complete
+      if (sliderInitialized && ratingsLoaded) {
+        observer.disconnect();
+        console.log('Related products observer disconnected - all tasks complete');
       }
     });
 
@@ -164,38 +213,18 @@
     if (container) {
       observer.observe(container, { childList: true, subtree: true });
     }
+    
+    // Fallback: disconnect observer after a reasonable timeout
+    setTimeout(() => {
+      if (!observer.disconnected) {
+        observer.disconnect();
+        console.log('Related products observer disconnected - timeout reached');
+      }
+    }, 10000);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     watchSliderLoad_{{ section.id | replace: '-', '_' }}();
-    
-    // Watch for product recommendations to load
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          // Check if product cards were added
-          const productCards = document.querySelectorAll('.product-rating[data-product-id]');
-          if (productCards.length > 0 && typeof loadProductCardRatings === 'function') {
-            console.log('Product cards detected, loading ratings...');
-            setTimeout(() => loadProductCardRatings(), 500);
-          }
-        }
-      });
-    });
-    
-    // Observe the product recommendations container
-    const recommendationsContainer = document.querySelector('product-recommendations[data-section-id="{{ section.id }}"]');
-    if (recommendationsContainer) {
-      observer.observe(recommendationsContainer, { childList: true, subtree: true });
-    }
-    
-    // Also try loading ratings after a delay to ensure content is loaded
-    setTimeout(() => {
-      if (typeof loadProductCardRatings === 'function') {
-        console.log('Loading ratings after delay...');
-        loadProductCardRatings();
-      }
-    }, 2000);
   });
 
   document.addEventListener('shopify:section:load', (event) => {
@@ -210,10 +239,10 @@
     }
   });
 
- document.addEventListener("DOMContentLoaded", function () {
+  // Handle detached layout
+  document.addEventListener("DOMContentLoaded", function () {
     {% if settings.layout_style == 'detached' %}
       const slickList = document.querySelector('.related-slider-{{ section.id }}');
-   console.log("hel", slickList)
       if (slickList) {
         const wrapperDiv = document.createElement('div');
         wrapperDiv.classList.add('container', 'px-4', 'mx-auto');
