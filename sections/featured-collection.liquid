@@ -24,23 +24,36 @@
   </div>
 
   {% case section.settings.columns_desktop %}
-  {% when '2' %}
+  {% when 2 %}
     {% assign columns = 'lg:grid-cols-2' %}
-  {% when '3' %}
+  {% when 3 %}
     {% assign columns = 'lg:grid-cols-3' %}
   {% else %}
     {% assign columns = 'lg:grid-cols-4' %}
   {% endcase %}
 
   {% assign collection = section.settings.collection | default: collections.first %}
+  {% assign display_type = section.settings.display_type | default: "slider" %}
   {% if collection.products_count > 0 %}
-    <div class="{% if section.settings.display_type == 'slider' %} collection-slider-{{ section.id }} {% endif %} grid grid-cols-1 sm:grid-cols-2 {{ columns }} gap-5 slider-space">
-      {% for product in collection.products limit: section.settings.max_products %}
-          <div class="product-slide h-full">
-            {% render 'product-card', product:product, hover:section.settings.enable_hover, hover_effect:section.settings.hover_effect %}
-          </div>
-        {% endfor %}
-    </div>
+    {% if display_type == 'slider' %}
+      <div class="collection-slider-{{ section.id }} slider-space grid grid-cols-1 sm:grid-cols-2 {{ columns }} gap-5">
+        {% for product in collection.products limit: section.settings.max_products %}
+            <div class="product-slide h-full">
+              {% render 'product-card', product:product, hover:section.settings.enable_hover, hover_effect:section.settings.hover_effect %}
+            </div>
+          {% endfor %}
+      </div>
+    {% else %}
+      <div class="{% if settings.layout_style == 'detached' %} container px-4 mx-auto {% endif %}">
+        <div class="grid grid-cols-1 sm:grid-cols-2 {{ columns }} gap-5">
+          {% for product in collection.products limit: section.settings.max_products %}
+              <div class="product-slide h-full">
+                {% render 'product-card', product:product, hover:section.settings.enable_hover, hover_effect:section.settings.hover_effect %}
+              </div>
+            {% endfor %}
+        </div>
+      </div>
+    {% endif %}
   {% else %}
     <p>No products found in the selected collection.</p>
   {% endif %}
@@ -118,23 +131,29 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    initSlider_{{ section.id | replace: '-', '_' }}();
+    {% if section.settings.display_type == 'slider' %}
+      initSlider_{{ section.id | replace: '-', '_' }}();
+    {% endif %}
   });
 
   document.addEventListener('shopify:section:load', function (event) {
     if (event.detail.sectionId === '{{ section.id }}') {
-      initSlider_{{ section.id | replace: '-', '_' }}();
+      {% if section.settings.display_type == 'slider' %}
+        initSlider_{{ section.id | replace: '-', '_' }}();
+      {% endif %}
     }
   });
 
   document.addEventListener('shopify:section:select', function (event) {
     if (event.detail.sectionId === '{{ section.id }}') {
-      initSlider_{{ section.id | replace: '-', '_' }}();
+      {% if section.settings.display_type == 'slider' %}
+        initSlider_{{ section.id | replace: '-', '_' }}();
+      {% endif %}
     }
   });
 
    document.addEventListener("DOMContentLoaded", function () {
-    {% if settings.layout_style == 'detached' %}
+    {% if section.settings.display_type == 'slider' and settings.layout_style == 'detached' %}
       const slickList = document.querySelector('.collection-slider-{{ section.id }} .slick-list');
       if (slickList) {
         const wrapperDiv = document.createElement('div');
