@@ -1,0 +1,223 @@
+<section class="{% if settings.layout_style == 'detached' %} container px-4 mx-auto {% endif %} my-8 md:my-10">
+ {% if section.settings.tagline != blank %}
+   <p class="tagline font-semibold" style="text-align: {{ section.settings.content_alignment }}">{{ section.settings.tagline }}</p>
+ {% endif %}
+    
+  {% if section.settings.accordion_heading != blank %}
+    <h2 class="large{% if section.settings.tagline != blank %} my-4 {% endif %}" style="text-align: {{ section.settings.content_alignment }}">{{ section.settings.accordion_heading }}</h2>
+  {% endif %}
+  <div class="grid md:grid-cols-2 max-md:gap-8 items-center break-words">
+    <div class="p-10 grid grid-cols-2 md:gap-10 items-center text-center relative" style="background-color: {{ section.settings.bg_color }}">
+      <div class="absolute top-1/2 left-1/2 h-px w-[30%] transform -translate-x-1/2"
+        style="border-top: 1px solid transparent;
+               border-image: linear-gradient(90deg, rgba(142, 150, 137, 0) 0%, #8E9689 50%, rgba(142, 150, 137, 0) 100%);
+               border-image-slice: 1;">
+      </div>
+      <div class="absolute top-1/2 left-1/2 w-px h-[30%] transform -translate-y-1/2"
+        style="border-left: 1px solid transparent;
+               border-image: linear-gradient(180deg, rgba(142, 150, 137, 0) 0%, #8E9689 50%, rgba(142, 150, 137, 0) 100%);
+               border-image-slice: 1;">
+      </div>
+      <div class="my-6">
+        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage1 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title1 }}</p>
+      </div>
+      <div class="my-6">
+        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage2 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title2 }}</p>
+      </div>
+      <div class="my-6">
+        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage3 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title3 }}</p>
+      </div>
+      <div class="my-6">
+        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage4 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title4 }}</p>
+      </div>
+    </div>
+
+    <div class="md:p-10">
+      {% for block in section.blocks %}
+        {% if block.type == 'accordion' %}
+          <details class="border-b py-4">
+            <summary class="font-semibold cursor-pointer flex justify-between items-center leading-normal tracking-wide">
+              {{ block.settings.accordion_item_title }}
+              <svg width="14" height="8" class="transition-transform duration-200 transform rotate-0 icon-chevron" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="#273025"/>
+              </svg>
+            </summary>
+            <div class="my-2 [&>p]:font-medium [&>p]:leading-normal">
+              {{ block.settings.accordion_item_description }}
+            </div>
+          </details>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const details = document.querySelectorAll('details');
+    
+    details.forEach(detail => {
+      const summary = detail.querySelector('summary');
+      const icon = summary.querySelector('.icon-chevron');
+      
+      summary.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Close all other details
+        details.forEach(otherDetail => {
+          if (otherDetail !== detail) {
+            otherDetail.removeAttribute('open');
+            const otherIcon = otherDetail.querySelector('.icon-chevron');
+            otherIcon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="#273025"/>';
+          }
+        });
+        
+        // Toggle current detail
+        const isOpen = detail.hasAttribute('open');
+        if (isOpen) {
+          detail.removeAttribute('open');
+          icon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="#273025"/>';
+        } else {
+          detail.setAttribute('open', '');
+          icon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M13.1192 7.30767C12.8458 7.58104 12.4026 7.58104 12.1292 7.30767L6.99922 2.17765L1.86919 7.30767C1.59583 7.58104 1.15261 7.58104 0.879244 7.30767C0.605877 7.0343 0.605877 6.59109 0.879244 6.31772L6.50424 0.692721C6.77761 0.419355 7.22083 0.419354 7.49419 0.692721L13.1192 6.31772C13.3926 6.59109 13.3926 7.0343 13.1192 7.30767Z" fill="#273025"/>';
+        }
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Product Accordion",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Find the product that suits you best"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "accordion_heading",
+      "label": "t:sections.featuredArticles.settings.heading",
+      "default": "Product Highlights"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Heading Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Product Highlight Background color",
+      "default": "#F8F8F8"
+    },
+    {
+      "type": "header",
+      "content": "Product Highlight1"
+    },
+    {
+      "type": "text",
+      "id": "percentage1",
+      "label": "Percentage",
+      "default": "100%"
+    },
+    {
+      "type": "text",
+      "id": "title1",
+      "label": "Title",
+      "default": "Spot reduction"
+    },
+    {
+      "type": "header",
+      "content": "Product Highlight2"
+    },
+    {
+      "type": "text",
+      "id": "percentage2",
+      "label": "Percentage",
+      "default": "100%"
+    },
+    {
+      "type": "text",
+      "id": "title2",
+      "label": "Title",
+      "default": "Redensified skin"
+    },
+    {
+      "type": "header",
+      "content": "Product Highlight3"
+    },
+    {
+      "type": "text",
+      "id": "percentage3",
+      "label": "Percentage",
+      "default": "96%"
+    },
+    {
+      "type": "text",
+      "id": "title3",
+      "label": "Title",
+      "default": "Oil reduction"
+    },
+    {
+      "type": "header",
+      "content": "Product Highlight4"
+    },
+    {
+      "type": "text",
+      "id": "percentage4",
+      "label": "Percentage",
+      "default": "72%"
+    },
+    {
+      "type": "text",
+      "id": "title4",
+      "label": "Title",
+      "default": "Uniformity"
+    },
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "Accordion Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "accordion_item_title",
+          "label": "Title",
+          "default": "What is your return policy?"
+        },
+        {
+          "type": "richtext",
+          "id": "accordion_item_description",
+          "label": "Description",
+          "default": "<p>You can return any unwanted item within 30 days of purchase for a full refund.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Accordion",
+      "category": "Custom",
+      "blocks": [
+        { "type": "accordion" },
+        { "type": "accordion" },
+        { "type": "accordion" }
+      ]
+    }
+  ]
+}
+{% endschema %}

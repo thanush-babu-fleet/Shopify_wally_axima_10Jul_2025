@@ -1,0 +1,116 @@
+<style>
+@media(max-width:480px){
+  .quick-content{
+    justify-self:center !important;
+    margin-right:0 !important;
+  }
+}
+@media(max-width:640px){
+  .quick-content{
+    justify-self:end;
+    margin-right:1rem;
+  }
+}
+</style>
+<div class="modalbg">
+<div id="quick-view-modal" class="quick-modal fixed inset-0 z-[999] hidden items-center justify-end" role="dialog" aria-modal="true" aria-label="Quick view" tabindex="-1">
+  <div id="quick-view-content" class="quick-content max-[340px]:w-80 w-92 h-full flex items-center transform transition-transform duration-300 ease-in-out">
+  </div>
+</div>
+</div>
+<script>
+  function trapFocusInModal(modal) {
+    function getFocusableEls() {
+      return modal.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+    }
+    function handleTrap(e) {
+      if (e.key === 'Tab') {
+        const focusableEls = Array.from(getFocusableEls());
+        if (!focusableEls.length) return;
+        // Use the first input, textarea, or select as the first focusable element if present
+        const firstInput = modal.querySelector('input, textarea, select');
+        const firstFocusableEl = firstInput || focusableEls[0];
+        const lastFocusableEl = focusableEls[focusableEls.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        }
+      }
+    }
+    modal.addEventListener('keydown', handleTrap);
+    modal._removeTrap = () => modal.removeEventListener('keydown', handleTrap);
+  }
+
+  let lastActiveElement = null;
+
+  document.querySelectorAll('.quick-view').forEach(button => {
+    button.addEventListener('click', () => {
+      lastActiveElement = document.activeElement;
+      document.body.classList.add("overflow-hidden");
+      const id = button.dataset.id;
+      const content = document.getElementById(`quick-view-${id}`);
+      const modal = document.getElementById('quick-view-modal');
+      const quickViewContent = document.getElementById('quick-view-content');
+
+      if (content && modal) {
+        quickViewContent.innerHTML = content.innerHTML;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (modal._removeTrap) modal._removeTrap(); // Remove previous trap
+
+        // Initialize Slick and other widgets here if needed...
+
+        // Wait for DOM update, then trap focus
+        setTimeout(() => {
+          trapFocusInModal(modal);
+          // Focus the close button if it exists, otherwise first input/textarea/select, otherwise first focusable, otherwise modal
+          const closeBtn = modal.querySelector('.close-modal');
+          if (closeBtn) {
+            closeBtn.focus();
+          } else {
+            const firstInput = modal.querySelector('input, textarea, select');
+            if (firstInput) {
+              firstInput.focus();
+            } else {
+              const focusableEls = modal.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+              if (focusableEls.length) {
+                focusableEls[0].focus();
+              } else {
+                modal.focus();
+              }
+            }
+          }
+        }, 100); // Slightly longer delay to ensure all widgets are initialized
+      }
+    });
+  });
+
+  document.addEventListener("click", function (event) {
+    const modalbg = document.querySelector(".modalbg");
+    const modal = document.getElementById("quick-view-modal");
+    const content = event.target.closest(".modal-content");
+    const closeBtn = event.target.closest(".close-modal");
+    
+    if ((modal && !content && modalbg.contains(event.target)) || closeBtn) {
+      document.body.classList.remove("overflow-hidden");
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('quick-view-content').innerHTML = '';
+      
+      // Destroy slick slider if it exists
+      const slider = modal.querySelector('.product-slide');
+      if (slider && slider.classList.contains('slick-initialized')) {
+        $(slider).slick('unslick');
+      }
+    }
+  });
+</script>

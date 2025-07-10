@@ -1,0 +1,32 @@
+
+<style>
+    #scrollToTopBtn svg {
+        width: 20px;
+        height: auto;
+    }
+    #scrollToTopBtn:hover {
+        transform: scale(1.05)
+    }
+</style>
+<button id="scrollToTopBtn" class="fixed bottom-4 {% if settings.scroll_to_top_position == 'right' %} right-4 {% else %} left-4 {% endif %} w-12 h-12 bg-secondary text-black rounded-full shadow-md hidden z-5 transition-opacity duration-300 flex items-center justify-center" aria-label="Scroll to Top">
+    {{ 'up_arrow.svg' | inline_asset_content }}
+</button>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const scrollBtn = document.getElementById('scrollToTopBtn');
+  
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 100) {
+          scrollBtn.classList.remove('hidden');
+          scrollBtn.classList.add('opacity-100');
+        } else {
+          scrollBtn.classList.add('hidden');
+          scrollBtn.classList.remove('opacity-100');
+        }
+      });
+  
+      scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+</script>

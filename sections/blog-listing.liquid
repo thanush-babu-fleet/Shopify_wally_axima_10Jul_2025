@@ -1,0 +1,262 @@
+<div class="blog-listing {% if settings.layout_style == 'detached' %} container px-4 mx-auto md:mb-20 {% endif %}max-md:my-8 md:mt-10">
+  <div class="mb-4">
+    <div class="flex flex-col justify-center items-center text-center">
+      <div>
+        <h2 class="font-bold text-3xl !leading-normal mb-1">{{ blog.title }}</h2>
+        {% if section.settings.show_blogs_count %}
+          <p>
+            {{ blog.articles_count }} items
+          </p>
+        {% endif %}
+      </div>
+
+      {% if section.settings.enable_sort %}
+        <div class="custom-select-wrapper relative w-max mt-4">
+          <label for="sortSelect" class="sr-only">Sort by</label>
+          <select id="sortSelect" class="custom-select appearance-none border text-base font-medium !leading-normal py-2 px-3">
+            <option value="" selected disabled>Sort by</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="az">Title A-Z</option>
+            <option value="za">Title Z-A</option>
+          </select>
+          <span class="custom-arrow pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+            {{- 'down_arrow.svg' | inline_asset_content -}}
+          </span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="">
+    {% if section.settings.pagination_type == 'paginated' %}
+      {% paginate blog.articles by section.settings.articles_to_show %}
+        <div class="main-blog page-width section-{{ section.id }}-padding">
+          <div class="blog-articles md:mb-10 grid{% if settings.layout_style == 'detached' %} card-space{% endif %} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg: lg:grid-cols-{{ section.settings.columns_desktop }}">
+            {% for article in blog.articles %}
+              <div class="article-wrapper bg-white overflow-hidden" data-date="{{ article.published_at | date: '%Y-%m-%d' }}" data-title="{{ article.title | escape }}">
+                {% render 'article-card',
+                  article: article,
+                  show_author: section.settings.show_author,
+                  show_date: section.settings.show_date,
+                  badge_bg: section.settings.badge_bg_color,
+                  badge_text: section.settings.badge_text_color
+                %}
+              </div>
+            {% endfor %}
+          </div>
+
+          {% if paginate.pages > 1 %}
+            <div class="pagination mt-6 flex justify-center items-center gap-4 text-sm">
+              {% if paginate.previous %}
+                <a href="{{ paginate.previous.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">
+                  <span class="sr-only">Go to previous page</span>
+                  {{- 'left-arrow.svg' | inline_asset_content -}}
+                </a>
+              {% else %}
+                <span class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center opacity-50 pointer-events-none">
+                  <span class="sr-only">Go to previous page</span>
+                  {{- 'left-arrow.svg' | inline_asset_content -}}
+                </span>
+              {% endif %}
+
+              {% for part in paginate.parts %}
+                {% if part.is_link %}
+                  <a aria-label="page-{{ part.title }}" href="{{ part.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">{{ part.title }}</a>
+                {% else %}
+                  <span class="rounded-full bg-secondary w-12 h-12 flex items-center justify-center">{{ part.title }}</span>
+                {% endif %}
+              {% endfor %}
+
+              {% if paginate.next %}
+                <a href="{{ paginate.next.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">
+                  <span class="sr-only">Go to next page</span>
+                  {{- 'right-arrow.svg' | inline_asset_content -}}
+                </a>
+              {% else %}
+                <span role="link" aria-disabled="true" tabindex="-1" href="{{ paginate.next.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center opacity-50 pointer-events-none">
+                  <span class="sr-only">Go to next page</span>
+                  {{- 'right-arrow.svg' | inline_asset_content -}}
+                </span>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      {% endpaginate %}
+    {% elsif section.settings.pagination_type == 'loadmore' %}
+      <div class="main-blog page-width section-{{ section.id }}-padding">
+        <div
+          class="blog-articles md:mb-10 grid {% if settings.layout_style == 'detached' %} card-space{% endif %} grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ section.settings.columns_desktop }}"
+          data-articles-to-show="{{ section.settings.articles_to_show }}"
+          data-pagination-type="loadmore"
+        >
+          {% assign articles_shown = 0 %}
+          {% for article in blog.articles %}
+            {% assign data_page = articles_shown | divided_by: section.settings.articles_to_show | plus: 1 %}
+            {% if articles_shown >= section.settings.articles_to_show %}
+              {% assign hidden = true %}
+            {% else %}
+              {% assign hidden = false %}
+            {% endif %}
+
+            <div class="article-wrapper rounded-4xl bg-white overflow-hidden {% if hidden %}hidden{% endif %}" data-page="{{ data_page }}" data-date="{{ article.published_at | date: '%Y-%m-%d' }}" data-title="{{ article.title | escape }}" style="filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.04));">
+              {% render 'article-card',
+                article: article,
+                show_author: section.settings.show_author,
+                show_date: section.settings.show_date,
+                badge_bg: section.settings.badge_bg_color,
+                badge_text: section.settings.badge_text_color
+              %}
+            </div>
+
+            {% assign articles_shown = articles_shown | plus: 1 %}
+          {% endfor %}
+        </div>
+
+        {% if blog.articles.size > section.settings.articles_to_show %}
+          <div class="flex justify-center mt-10">
+            <button
+              id="loadMoreBtn"
+              class="button tertiary-btn"
+              data-total="{{ blog.articles.size }}"
+            >
+              Load More
+            </button>
+          </div>
+        {% endif %}
+      </div>
+
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const loadMoreBtn = document.getElementById("loadMoreBtn");
+          if (!loadMoreBtn) return;
+
+          const container = document.querySelector(".blog-articles");
+          const articlesPerPage = parseInt(container.dataset.articlesToShow, 10);
+          const totalArticles = parseInt(loadMoreBtn.dataset.total, 10);
+          let currentPage = 1;
+
+          loadMoreBtn.addEventListener("click", function () {
+            currentPage++;
+            const nextPageArticles = container.querySelectorAll('[data-page="' + currentPage + '"]');
+            nextPageArticles.forEach(el => el.classList.remove("hidden"));
+
+            if (currentPage * articlesPerPage >= totalArticles) {
+              loadMoreBtn.style.display = "none";
+            }
+          });
+        });
+      </script>
+    {% endif %}
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const sortSelect = document.getElementById("sortSelect");
+      const container = document.querySelector(".blog-articles");
+
+      if (!sortSelect || !container) return;
+
+      function sortArticles(method) {
+        const articles = Array.from(container.querySelectorAll(".article-wrapper"));
+
+        articles.sort((a, b) => {
+          const dateA = new Date(a.dataset.date);
+          const dateB = new Date(b.dataset.date);
+          const titleA = a.dataset.title.toLowerCase();
+          const titleB = b.dataset.title.toLowerCase();
+
+          switch (method) {
+            case "newest":
+              return dateB - dateA;
+            case "oldest":
+              return dateA - dateB;
+            case "az":
+              return titleA.localeCompare(titleB);
+            case "za":
+              return titleB.localeCompare(titleA);
+            default:
+              return 0;
+          }
+        });
+
+        articles.forEach(article => container.appendChild(article));
+      }
+
+      sortSelect.addEventListener("change", function () {
+        sortArticles(this.value);
+      });
+    });
+  </script>
+</div>
+{% schema %}
+{
+  "name": "Blog List",
+  "settings": [
+    {
+      "type": "range",
+      "id": "articles_to_show",
+      "label": "Number of articles to show",
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Number of columns on Desktop",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "Pagination type",
+      "options": [
+        { "value": "paginated", "label": "Paginated" },
+        { "value": "loadmore", "label": "Load more button" }
+      ],
+      "default": "paginated"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sort",
+      "label": "Enable sort",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blogs_count",
+      "label": "Show Blogs count",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show Author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show Date",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "badge_color",
+      "label": "Badge Color",
+      "default": "#2D6105"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg_color",
+      "label": "Badge Background Color",
+      "default": "#6CF6001A"
+    }
+  ]
+}
+{% endschema %}

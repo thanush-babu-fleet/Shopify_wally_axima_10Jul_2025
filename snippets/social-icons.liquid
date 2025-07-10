@@ -1,0 +1,72 @@
+<ul class="list-unstyled flex flex-wrap gap-4 {% if class %} {{ class}}{% endif %}" role="list">
+    {%- if settings.linkedin != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.linkedin }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-linkedin.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.linkedin' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+  {%- if settings.instagram != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.instagram }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-instagram.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.instagram' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+  {%- if settings.facebook != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.facebook }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-facebook.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.facebook' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+    {%- if settings.x != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.x }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-x.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.x' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+  {%- if settings.youtube != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.youtube }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-youtube.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.youtube' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+  {%- if settings.pinterest != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.pinterest }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-pinterest.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.pinterest' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+  {%- if settings.snapchat != blank -%}
+    <li class="list-social__item">
+      <a href="{{ settings.snapchat }}" class="link list-social__link">
+        <span class="svg-wrapper">
+          {{- 'icon-snapchat.svg' | inline_asset_content -}}
+        </span>
+        <span class="visually-hidden">{{ 'global.social.links.snapchat' | t }}</span>
+      </a>
+    </li>
+  {%- endif -%}
+</ul>

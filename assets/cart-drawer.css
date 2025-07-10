@@ -1,0 +1,149 @@
+.cart-main-drawer {
+  box-shadow: 0px 16px 40px 0px #00000029;
+
+  @media(min-width: 768px){
+    right: 20px;
+  }
+   @media(min-width: 1640px){
+    transform: translateX(-44%);
+  } 
+  z-index: 20;
+
+  .cart-item__name {
+    font-size: 16px;
+  }
+}
+
+.cart-main-drawer {
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
+}
+
+.cart-main-drawer.open {
+  transform: translateX(0);
+}
+
+.cartoverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: #00000099;
+  z-index: 20;
+}
+
+.cart-drawer::-webkit-scrollbar {
+  display: none;
+}
+
+.cart-drawer {
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+}
+
+.cart-drawer.open {
+  transform: translateX(0);
+}
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 22px;
+}
+
+.cart-close {
+  border-width: 0px;
+  border-radius: 100%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.cart-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cart-item-details {
+  flex: 1;
+  flex-direction: column;
+  display: flex;
+  gap: 4px;
+}
+
+.cart-item-details h3 {
+  font-weight: 600;
+}
+
+.cart-item-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.cart-item-price p {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.56px;
+  color: #273025;
+}
+
+.cart-remove-button {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.cart-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border: none;
+  cursor: pointer;
+}
+
+.cartQuantity {
+  border: 1px solid #000;
+  display: flex;
+  align-items: center;
+  width: 157px;
+  padding: 12px 25px;
+}
+
+.modal-content .text-tertiary {
+  color: #273025;
+}
+
+.cartPage{
+  .cart-item__image {
+    width: 120px;
+    height: 120px;
+    @media(max-width: 640px){
+      width: 48px;
+      height: 48px;
+    }
+  }
+  .cart-item__name {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: 0.04em;
+    @media(max-width:768px){
+      font-size: 20px;
+      line-height: 28px;
+    }
+  }
+  .cart-item-price p {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    @media(max-width:768px){
+      font-size: 16px;
+      line-height: 24px;
+    }
+  }
+}

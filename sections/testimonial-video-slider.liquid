@@ -1,0 +1,447 @@
+<style>
+  .testimonial-video-section-{{section.id}} {
+    {% if section.settings.background_gradient != '' %}
+      background: {{section.settings.background_gradient}};
+    {% else %}
+      background-color: {{section.settings.testimonial_section_background}};
+    {% endif %}
+
+    .slick-next {
+      right: 24px;
+    }
+    .slick-track{
+      display:flex;
+      left: -5px;
+      align-items:stretch;
+      
+      .slick-slide{
+          height: auto;
+      }
+      .slick-slide >div:first-child{
+        height:100%;
+        .column{
+          height:100% !important;
+        }
+      }
+    }
+  }
+</style>
+<div class="testimonial-video-section-{{section.id}} py-8 md:py-12">
+  <div class="testimonial-section">
+    <div class=" pb-10 md:pb-8" style="text-align: {{ section.settings.content_alignment }};">
+      {%- if section.settings.tagline != blank -%}
+        <p class="tagline">{{ section.settings.tagline }}</p>
+      {%- endif -%}
+  
+      {%- if section.settings.title != blank -%}
+        <h2 class="large{% if section.settings.tagline != blank %} mt-4 {% endif %}">{{ section.settings.title }}</h2>
+      {%- endif -%}
+  
+      {%- if section.settings.subtitle != blank -%}
+        <p class="text-center text-gray-600 mb-6">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+    </div>
+    <div class="testimonial-video-slider-{{ section.id }}">
+          {% for block in section.blocks %}
+            {% if block.type == 'testimonial' %}
+            {% assign product = block.settings.product_link %}
+                <div class="overflow-hidden h-full" style="background-color: {{ section.settings.testimonial_background }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}"">
+                  <div class="relative aspect-[3/4]">
+                    {% if block.settings.video_thumbnail != blank %}
+                      <img
+                        src="{{ block.settings.video_thumbnail | img_url: 'master' }}"
+                        alt="Testimonial Thumbnail"
+                        class="object-cover w-full h-full video-thumb"
+                      >
+                    {% elsif block.settings.product_link != nil %}
+                      <img
+                        src="{{ block.settings.product_link.featured_image | img_url: 'master' }}"
+                        alt="{{ block.settings.product_link.title }}"
+                        class="object-cover w-full h-full video-thumb"
+                      >
+                    {% endif %}
+
+                    {%- if block.settings.product_link != nil and block.settings.product_link.images.size > 0 -%}
+                      <div class="product-images-overlay absolute left-2 bottom-2 flex -space-x-2 z-20 space-x-2">
+                        {%- assign images = block.settings.product_link.images | slice: 0, 4 -%}
+                        {%- for image in images -%}
+                          <a href="{{ block.settings.product_link.url }}" class="cursor-pointer">
+                            <img src="{{ image | img_url: '80x' }}" alt="{{ block.settings.product_link.title }}" class="w-auto h-16" />
+                          </a>
+                        {%- endfor -%}
+                      </div>
+                    {%- endif -%}
+
+                    <button class="absolute inset-0 flex items-center justify-center video-play-btn z-10">
+                      <div class="bg-black border border-white w-12 h-12 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </button>
+                    <div class="video-player absolute inset-0 hidden">
+                      {% if block.settings.video_picker != blank %}
+                        {{ block.settings.video_picker | video_tag: controls: true, autoplay: false, loop: false, muted: false }}
+                      {% elsif block.settings.video_url != blank %}
+                        {% if block.settings.video_url contains 'youtube' %}
+                          <iframe class="w-full h-full" src="{{ block.settings.video_url | replace: 'watch?v=', 'embed/' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        {% elsif block.settings.video_url contains 'vimeo' %}
+                          <iframe class="w-full h-full" src="{{ block.settings.video_url | replace: 'vimeo.com', 'player.vimeo.com/video' }}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                        {% endif %}
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-row gap-2 p-4">
+                    {% if product != nil %}
+                      <div class="w-16 h-auto">
+                        <a href="{{ product.url }}" class="cursor-pointer">
+                          <img src="{{ product.featured_image | img_url: '80x' }}" alt="{{ product.title }}">
+                        </a>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <p class="text-xl leading-normal font-medium">{{ product.title }}</p>
+                      <div class="bottom flex flex-row items-center gap-4">
+                          {%- assign product_handle = block.settings.product_link | split: '/products/' | last -%}
+                          {%- assign product = all_products[product_handle] -%}
+
+                          {%- assign is_sold_out = false -%}
+                          {%- if product and product.available == false -%}
+                            {%- assign is_sold_out = true -%}
+                          {%- endif -%}
+
+                          {% if product %}
+                            <div class="">
+                              {%- if settings.enable_quick_add -%}
+                                <div class="relative w-max {% if settings.content_alignment == 'center' %} mx-auto {% endif %}">
+                                  <button class="add-to-cart cart-btn" data-id="{{ product.variants.first.id }}" aria-label="Add to Cart" id="cart_icon_{{ product.id }}"{% if is_sold_out == true %} disabled{% endif %}>
+                                    <span class="text-white">{{ 'cart-icon.svg' | inline_asset_content }}</span>
+                                  </button>
+
+                                  {%- assign total_quantity = 0 -%}
+                                  {%- for variant in product.variants -%}
+                                    {%- for item in cart.items -%}
+                                      {%- if item.variant_id == variant.id -%}
+                                        {%- assign total_quantity = total_quantity | plus: item.quantity -%}
+                                      {%- endif -%}
+                                    {%- endfor -%}
+                                  {%- endfor -%}
+
+                                  <p id="testimonial_quantity_{{ product.id }}"
+                                    data-product-id="{{ product.id }}"
+                                    class="quantity absolute -top-1 -right-1 bg-secondary w-5 h-5 text-[10px] flex items-center justify-center rounded-full 
+                                    {% if total_quantity == 0 or total_quantity == blank %} opacity-0 {% endif %}">
+                                    {%- if total_quantity > 0 -%}
+                                      {{ total_quantity }}
+                                    {%- endif -%}
+                                  </p>
+                                </div>
+                              {%- endif -%}
+                            </div>
+                          {% endif %}
+                          <div class="flex flex-col gap-1">
+                            <p class="text-base font-bold leading-normal">{{ product.price | money }}</p>
+                            <div class="flex justify-center items-center">
+                            {% assign rating = block.settings.rating | plus: 0 %}
+                              {% for i in (1..5) %}
+                                {% if i <= rating %}
+                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M5.5 0.0839844L7.05175 3.44818L10.7308 3.88439L8.01079 6.39979L8.73282 10.0336L5.5 8.22398L2.26718 10.0336L2.98921 6.39979L0.269189 3.88439L3.94825 3.44818L5.5 0.0839844Z" fill="#000000"/>
+                                </svg>
+                                {% else %}
+                                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M5.5 0.0839844L7.05175 3.44818L10.7308 3.88439L8.01079 6.39979L8.73282 10.0336L5.5 8.22398L2.26718 10.0336L2.98921 6.39979L0.269189 3.88439L3.94825 3.44818L5.5 0.0839844Z" fill="#CFD5CB"/>
+                                </svg>
+                                {% endif %}
+                              {% endfor %}
+                              </div>
+                           </div>
+                          {%- if is_sold_out -%}
+                            <span class="{{ badge_position }} text-xs font-semibold px-3 py-1 z-10" style="border-radius: {{ settings.badge_corner_radius }}px; background-color: {{ settings.sold_out_bg }}; color: {{ settings.badge_text_color }}">
+                              Sold Out
+                            </span>
+                          {% endif %}
+                          </div>
+                        </div>
+                        {% endif %}
+                      </div>
+                </div>
+            {% endif %}
+          {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  function initTestimonialSlider_{{ section.id | replace: '-', '_' }}() {
+    const slider = $('.testimonial-video-slider-{{ section.id }}');
+
+    if (slider.hasClass('slick-initialized')) {
+      slider.slick('unslick');
+    }
+
+    slider.slick({
+      slidesToShow: {{ section.settings.columns_desktop }},
+      slidesToScroll: 1,
+      autoplay: {{ section.settings.rotate_slides }},
+      arrows: {{ section.settings.show-testimonial-arrows }},
+      dots: {{ section.settings.show-testimonial-dots }},
+      prevArrow: false,
+      nextArrow: '<button type="button" class="slick-next custom-next button icon-btn" aria-label="Next slide"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" fill="white"/><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" stroke="#273025"/><path d="M20.4434 13.8798C20.7167 13.6065 21.1602 13.6065 21.4336 13.8798L27.0586 19.5048L27.1484 19.6142C27.1654 19.6399 27.1772 19.6681 27.1904 19.6953C27.1962 19.7072 27.2039 19.7182 27.209 19.7304C27.2174 19.7507 27.2221 19.7721 27.2285 19.7929C27.2489 19.8586 27.2637 19.9276 27.2637 19.9999C27.2637 20.0589 27.252 20.1152 27.2383 20.1699C27.2304 20.2013 27.2242 20.2333 27.2119 20.2636C27.2112 20.2654 27.2097 20.2668 27.209 20.2685C27.2063 20.275 27.2021 20.2807 27.1992 20.2871C27.1833 20.3223 27.1656 20.3569 27.1436 20.3896C27.1182 20.4272 27.0905 20.4631 27.0586 20.4951L21.4336 26.1201C21.1603 26.3934 20.7167 26.3932 20.4434 26.1201C20.17 25.8467 20.17 25.4032 20.4434 25.1298L24.873 20.7001H13.4385C13.0519 20.7001 12.7384 20.3865 12.7383 19.9999C12.7383 19.6133 13.0519 19.2998 13.4385 19.2998H24.873L20.4434 14.8701C20.17 14.5967 20.17 14.1532 20.4434 13.8798Z" fill="#273025"/></svg></button>',
+      infinite: true,
+      adaptiveHeight: true,
+      accessibility: true,
+      responsive: [
+         {
+          breakpoint: 1023,
+          settings: {
+            slidesToShow: 3,
+            swipe: {{ section.settings.swipe_mobile }}
+          }
+        },
+        {
+          breakpoint: 768,
+          settings: {
+            slidesToShow: 2,
+            swipe: {{ section.settings.swipe_mobile }}
+          }
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            slidesToShow: 1,
+            swipe: {{ section.settings.swipe_mobile }},
+            centerMode: true,
+            centerPadding: '10% 0 0',
+            infinite: true,
+          }
+        }
+      ]
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initTestimonialSlider_{{ section.id | replace: '-', '_' }}();
+  });
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initTestimonialSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initTestimonialSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      {% if settings.layout_style == 'detached' %}
+        const slickList = document.querySelector('.testimonial-video-slider-{{ section.id }} .slick-list');
+        if (slickList) {
+          const wrapperDiv = document.createElement('div');
+          wrapperDiv.classList.add('container', 'px-4', 'mx-auto');
+  
+          slickList.parentNode.insertBefore(wrapperDiv, slickList);
+          wrapperDiv.appendChild(slickList);
+        }
+      {% endif %}
+    });
+
+  // Add video player functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoButtons = document.querySelectorAll('.video-play-btn');
+    
+    videoButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const videoContainer = this.closest('.relative');
+        const videoPlayer = videoContainer.querySelector('.video-player');
+        const thumbnail = videoContainer.querySelector('img');
+        const productImagesOverlay = videoContainer.querySelector('.product-images-overlay');
+        
+        // Hide thumbnail, play button, and product images overlay
+        if (thumbnail) thumbnail.style.display = 'none';
+        this.style.display = 'none';
+        if (productImagesOverlay) productImagesOverlay.style.display = 'none';
+        
+        // Show and play video
+        videoPlayer.classList.remove('hidden');
+        
+        // If it's a hosted video, play it
+        const video = videoPlayer.querySelector('video');
+        if (video) {
+          video.play();
+        }
+      });
+    });
+  });
+
+</script>
+
+{% schema %}
+{
+  "name": "Testimonials Video Slider",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Find the product that suits you best"
+    },
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "Heading",
+      "default": "See what users of this product have to say about it"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Description",
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Heading Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "No. of columns on desktop",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "swipe_mobile",
+      "label": "Enable swipe on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show-testimonial-dots",
+      "default": true,
+      "label": "Show Slider dots"
+    },
+    {
+      "type": "checkbox",
+      "id": "show-testimonial-arrows",
+      "default": true,
+      "label": "Show Slider arrows"
+    },
+    {
+      "type": "checkbox",
+      "id": "rotate_slides",
+      "label": "t:sections.featuredArticles.settings.rotate_slide",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color",
+      "id": "testimonial_section_background",
+      "label": "Background Color",
+      "default": "#F8F8F8"
+    },
+    {
+        "type": "color_background",
+        "id": "background_gradient",
+        "label": "t:sections.multicolumn.settings.background_gradient",
+        "info": "If gradient is used,then it overrides normal background color"
+    },
+    {
+      "type": "color",
+      "id": "testimonial_background",
+      "label": "Card Background Color",
+      "default": "#F8F8F8"
+    },
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+         {
+          "type": "header",
+          "content": "Hosted Video"
+        },
+        {
+          "type": "video",
+          "id": "video_picker",
+          "label": "t:sections.videoSlider.blocks.slider.settings.video",
+        },
+        {
+          "type": "header",
+          "content": "Video URL"
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "accept": ["youtube", "vimeo"],
+          "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+          "label": "t:sections.videoSlider.blocks.slider.settings.video_url",
+        },
+        {
+          "type": "image_picker",
+          "id": "video_thumbnail",
+          "label": "Thumbnail Image"
+        },
+        {
+          "type": "header",
+          "content": "Testimonial Product Link"
+        },
+        {
+          "type": "product",
+          "id": "product_link",
+          "label": "Product Link",
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Product Rating",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonials Video Slider",
+      "blocks":[
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        },
+        {
+          "type": "testimonial"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

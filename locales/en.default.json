@@ -1,0 +1,64 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "global": {
+    "announcement_bar": {
+      "navigation_label": "Faqs",
+      "contact_us_label": "Need Help"
+    },
+    "contact_us": {
+      "title": "Contact us",
+      "description": "Our advisors will be happy to answer any questions you may have.",
+      "buttonLabel": "Send",
+      "subscribe_success": "Thank you! We’ll get back to you shortly"
+    },
+    "social": {
+      "links": {
+        "emailaddress": "Email Address",
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "x": "X",
+        "pinterest": "Pinterest",
+        "youtube": "YouTube",
+        "snapchat": "Snapchat"
+      }
+    },
+    "search": {
+      "placeholder": "Search...",
+      "placeholder-search": "What are you looking for?",
+      "no_results": "No Results Found",
+      "categories": "Popular Categories",
+      "recommended": "Recommended"
+    },
+    "cart": {
+      "title": "Shopping bag",
+      "checkout": "Checkout",
+      "continue": "Continue shopping",
+      "empty": "Your shopping bag is empty",
+      "emptydes": "Browse across 1000+ assorted fashion",
+      "buynow": "Buy now ",
+      "calculate_shipping": "Calculate shipping",
+      "calculate": "Calculate",
+      "add_instructions": "Add special instructions",
+      "notes_placeholder": "Make it a gift for my anniversary",
+      "total": "Total"
+    },
+    "newsletter": {
+      "subscribe_success": "Thank you for subscribing!",
+      "subscribe_failure": "Failed to subscribe"
+    }
+  },
+  "sections": {
+    "footer": {
+      "payment": "Payment method"
+    }
+  }
+}

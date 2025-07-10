@@ -1,0 +1,503 @@
+{% style %}
+  .description > p{
+      font-size:14px;
+      font-weight:500;
+      line-height:180%;
+  }
+  .heading > span{
+    color:inherit;
+  }
+  .multicolumn-section-{{section.id}}{
+    color:{{ section.settings.text_color}} !important;
+    {% if section.settings.background_gradient != '' %}
+      background: {{section.settings.background_gradient}};
+    {% else %}
+      background:{{section.settings.background_color}};
+    {% endif %}
+    
+  }
+  .column{
+    border-radius: {{ section.settings.border_radius }}px; 
+    background-color: {{ section.settings.column_background}};
+    height:100%;
+  }
+  .column-icon svg,
+  .column-icon img {
+    {% case section.settings.icon_size %}
+      {% when "small" %}
+        width: 30px;
+        height: 30px;
+      {% when "medium" %}
+        width: 40px;
+        height: 40px;
+      {% else %}
+        width: 50px;
+        height: 50px;
+    {% endcase %}
+    object-fit: cover;
+    max-width:none !important;
+  }
+  .slick-track{
+    display:flex;
+    align-items:stretch;
+    
+    .slick-slide{
+        height: auto;
+    }
+    .slick-slide >div:first-child{
+      height:100%;
+      .column{
+        height:100% !important;
+      }
+    }
+  }
+  .slick-list {
+    overflow: hidden;
+  }
+  .responsive {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive {
+      display: grid !important;
+      grid-template-columns: repeat({{ section.settings.desktop_columns }}, 1fr) ;
+    }
+  
+    .slide {
+      width: 100% !important; 
+    }
+  }
+
+  {% if section.settings.enable_swipe_mobile == true %}
+    .responsive {
+        display: block;
+      }
+  {% else %}
+    .responsive {
+      display: grid ;
+      grid-template-columns: repeat({{ section.settings.mobile_columns }}, 1fr);
+    }
+  @media (min-width: 1024px) {
+    .responsive {
+      grid-template-columns: repeat({{ section.settings.desktop_columns }}, 1fr) ;
+    }
+  }
+  {% endif %}
+  
+{% endstyle %}
+
+<div class="multicolumn-section-{{section.id}} {{ section.settings.layout }} {% if  section.settings.enable_swipe_mobile == true %} px-0 md:px-4 {% endif %}" role="complementary" aria-label="Multicolumn Section">
+  <div class="slider-container w-full py-10 {% if  section.settings.enable_swipe_mobile == false %} p-10 {% endif %} ">
+    <div class="multicolumn-slider-{{ section.id }} responsive">
+      {% for block in section.blocks %}
+        <div class="slide column flex gap-4 p-4 max-md:min-w-[95%] overflow-hidden 
+        {% case section.settings.icon_position %}
+            {%- when "left" -%}
+              flex-row {% if section.settings.mobile_columns=="2" %} max-md:flex-col {% endif %}
+            {%- when "right" -%}
+              justify-between flex-row-reverse {% if section.settings.mobile_columns=="2" %} max-md:flex-col max-md:justify-start {% endif %}
+            {%- when "top" -%}
+              flex-col
+            {%- else -%}
+              flex-col-reverse justify-between
+          {%- endcase -%}
+          " {{ block.shopify_attributes }}
+        >
+          {% if block.settings.custom_icon == blank %}
+            <div class="column-icon flex svg-wrapper">
+              {{- block.settings.icon | inline_asset_content -}}
+            </div>
+          {% else %}
+            <div class="column-icon flex {% case section.settings.content_alignment %}
+                {%- when "left" -%}
+                  justify-start items-start
+                {%- when "center" -%}
+                  justify-center items-center
+                {%- else -%}
+                  justify-end items-end
+              {% endcase %}"
+            >
+            {{- block.settings.custom_icon | image_url: width: full | image_tag: width: 40 -}}
+            </div>
+          {% endif %}
+          <div class="w-full">
+            <div class="column-content flex flex-col gap-2 {% case section.settings.content_alignment -%}
+                {%- when "left" -%}
+                  !text-start
+                {%- when "center" -%}
+                  !text-center
+                {%- else -%}
+                  !text-end
+              {%- endcase -%}
+              "
+            >
+              {% if block.settings.heading %}
+                <h2 class="heading text-xl font-semibold leading-normal" style="letter-spacing:0px;" >{{ block.settings.heading }}</h2>
+              {% endif %}
+              {% if block.settings.description %}
+                <div class="description richtext">{{ block.settings.description }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  function initResponsiveSlider_{{ section.id | replace: '-', '_' }}() {
+    const slider = $('.multicolumn-slider-{{ section.id }}');
+
+    if (slider.hasClass('slick-initialized')) {
+      slider.slick('unslick');
+    }
+
+    const isMobile = window.innerWidth < 1024 && {{ section.settings.enable_swipe_mobile }};
+
+    if (isMobile) {
+      slider.slick({
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: {{ section.settings.rotate_slides }},
+        arrows: false,
+        dots: false,
+        infinite: true,
+        speed: 300,
+        variableWidth: false,
+        centerMode: true,
+        centerPadding: "10% 0 0",
+        swipe: {{ section.settings.enable_swipe_mobile }},
+        responsive: [
+          {
+            breakpoint: 1025,
+            settings: {
+              initialSlide: 1,
+              slidesToShow: 2
+            }
+          },
+          {
+            breakpoint: 768,
+            settings: {
+              arrows: false,
+              slidesToShow: 1
+            }
+          }
+        ]
+      });
+    } else {
+      if (slider.hasClass('slick-initialized')) {
+        slider.slick('unslick');
+      }
+      slider.removeAttr('style');
+    }
+  }
+
+  function setEqualHeight_{{ section.id | replace: '-', '_' }}() {
+    const slides = document.querySelectorAll('.responsive-{{ section.id }} .slide');
+    const columns = document.querySelectorAll('.responsive-{{ section.id }} .column');
+
+    if (window.innerWidth < 768 && {{ section.settings.enable_swipe_mobile }}) {
+      let maxHeight = 0;
+
+      columns.forEach(col => col.style.height = 'auto');
+      slides.forEach(slide => slide.style.height = 'auto');
+
+      columns.forEach(col => {
+        const height = col.offsetHeight;
+        if (height > maxHeight) {
+          maxHeight = height;
+        }
+      });
+
+      slides.forEach(slide => slide.style.height = `${maxHeight}px`);
+      columns.forEach(col => col.style.height = `${maxHeight}px`);
+    } else {
+      // Reset if desktop
+      columns.forEach(col => col.style.height = 'auto');
+      slides.forEach(slide => slide.style.height = 'auto');
+    }
+  }
+
+  function setupResponsiveSlider_{{ section.id | replace: '-', '_' }}() {
+    initResponsiveSlider_{{ section.id | replace: '-', '_' }}();
+    setEqualHeight_{{ section.id | replace: '-', '_' }}();
+
+    const slider = $('.responsive-{{ section.id }}');
+
+    slider.off('init reInit afterChange').on('init reInit afterChange', function () {
+      setEqualHeight_{{ section.id | replace: '-', '_' }}();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setupResponsiveSlider_{{ section.id | replace: '-', '_' }}();
+  });
+
+  window.addEventListener('resize', debounce(function () {
+    setupResponsiveSlider_{{ section.id | replace: '-', '_' }}();
+  }, 300));
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      setupResponsiveSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      setupResponsiveSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  function debounce(func, wait) {
+    let timeout;
+    return function() {
+      clearTimeout(timeout);
+      timeout = setTimeout(func, wait);
+    };
+  }
+</script>
+
+{% schema %}
+  {
+    "name": "t:sections.multicolumn.name",
+    "blocks": [
+      {
+        "type": "column",
+        "name": "t:sections.multicolumn.blocks.column.name",
+        "settings": [ 
+          {
+            "type": "select",
+            "id": "icon",
+            "label": "t:sections.multicolumn.blocks.column.settings.icon",
+            "options": [
+              {
+                "value": "shipping-aircraft.svg",
+                "label": "Shipping (aircraft)"
+              },
+              {
+                "value": "message.svg",
+                "label": "Message"
+              },
+              {
+                "value": "container-box.svg",
+                "label": "Container Box"
+              },
+              {
+                "value": "telephone.svg",
+                "label": "Telephone"
+              },
+            ],
+            "default":"shipping-aircraft.svg"
+          },
+          {
+            "type": "image_picker",
+            "id": "custom_icon",
+            "label": "t:sections.multicolumn.blocks.column.settings.custom_icon",
+            "info": "If Custom Icon is used, then it overrides inbuilt Icon options"
+          },
+          {
+            "type": "text",
+            "id": "heading",
+            "label": "t:sections.multicolumn.blocks.column.settings.heading",
+            "default": "Column Heading"
+          },
+          {
+            "type": "richtext",
+            "id": "description",
+            "label": "t:sections.multicolumn.blocks.column.settings.description",
+            "default": "<p>Column description</p>"
+          }
+        ]
+      }
+    ],
+    "settings": [
+      {
+        "type": "select",
+        "id": "layout",
+        "label": "t:sections.multicolumn.settings.layout",
+        "options": [
+          {
+            "value": "container mx-auto",
+            "label": "Container"
+          },
+          {
+            "value": "w-full",
+            "label": "Full Width"
+          }
+        ],
+        "default": "container mx-auto"
+      },
+      {
+        "type": "select",
+        "id": "desktop_columns",
+        "label": "t:sections.multicolumn.settings.desktop_columns",
+        "options": [
+          {
+            "value": "1",
+            "label": "t:sections.multicolumn.options.desktop_columns.1"
+          },
+          {
+            "value": "2",
+            "label": "t:sections.multicolumn.options.desktop_columns.2"
+          },
+          {
+            "value": "3",
+            "label": "t:sections.multicolumn.options.desktop_columns.3"
+          },
+          {
+            "value": "4",
+            "label": "t:sections.multicolumn.options.desktop_columns.4"
+          }
+        ],
+        "default":"4"
+      },
+      {
+        "type": "select",
+        "id": "mobile_columns",
+        "label": "t:sections.multicolumn.settings.mobile_columns",
+        "options": [
+          {
+            "value": "1",
+            "label": "t:sections.multicolumn.options.mobile_columns.1"
+          },
+          {
+            "value": "2",
+            "label": "t:sections.multicolumn.options.mobile_columns.2"
+          },
+        ],
+        "default":"1"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_swipe_mobile",
+        "label": "t:sections.multicolumn.settings.enable_swipe_mobile",
+        "info": "Enabling Swipe would disable number of mobile columns option.",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "rotate_slides",
+        "label": "t:sections.featuredArticles.settings.rotate_slide",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "content_alignment",
+        "label": "t:sections.multicolumn.settings.content_alignment",
+        "options": [
+          {
+            "value": "left",
+            "label": "t:sections.multicolumn.options.content_alignment.left"
+          },
+          {
+            "value": "center",
+            "label": "t:sections.multicolumn.options.content_alignment.center"
+          },
+          {
+            "value": "right",
+            "label": "t:sections.multicolumn.options.content_alignment.right"
+          },
+        ],
+        "default":"left"
+      },
+      {
+        "type": "range",
+        "id": "border_radius",
+        "label": "t:sections.multicolumn.settings.border_radius",
+        "min": 0,
+        "max": 50,
+        "step": 1,
+        "default": 20
+      },
+      {
+        "type": "select",
+        "id": "icon_position",
+        "label": "t:sections.multicolumn.settings.icon_position",
+        "options": [
+          {
+            "value": "left",
+            "label": "t:sections.multicolumn.options.icon_position.left"
+          },
+          {
+            "value": "top",
+            "label": "t:sections.multicolumn.options.icon_position.top"
+          },
+          {
+            "value": "right",
+            "label": "t:sections.multicolumn.options.icon_position.right"
+          },
+          {
+            "value": "bottom",
+            "label": "t:sections.multicolumn.options.icon_position.bottom"
+          }
+        ],
+        "default":"left"
+      },
+      {
+        "type": "select",
+        "id": "icon_size",
+        "label": "t:sections.multicolumn.settings.icon_size",
+        "options": [
+          {
+            "value": "small",
+            "label": "t:sections.multicolumn.options.icon_size.small"
+          },
+          {
+            "value": "medium",
+            "label": "t:sections.multicolumn.options.icon_size.medium"
+          },
+          {
+            "value": "large",
+            "label": "t:sections.multicolumn.options.icon_size.large"
+          }
+        ],
+        "default":"medium"
+      },    
+      {
+        "type": "color",
+        "id": "background_color",
+        "label": "t:sections.multicolumn.settings.background_color",
+        "default": "#000000"
+      },
+      {
+        "type": "color_background",
+        "id": "background_gradient",
+        "label": "t:sections.multicolumn.settings.background_gradient",
+        "info": "If gradient is used,then it overrides normal background color"
+      },
+      {
+        "type": "color",
+        "id": "column_background",
+        "label": "t:sections.multicolumn.settings.column_background",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "color",
+        "id": "text_color",
+        "label": "t:sections.multicolumn.settings.text_color",
+        "default": "#000000"
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:sections.multicolumn.name",
+        "category": "Custom",
+        "settings": {
+          "desktop_columns": "4",
+          "mobile_columns": "1",
+          "enable_swipe_mobile": false
+        },
+        "blocks": [
+          {"type": "column"},
+          {"type": "column"},
+          {"type": "column"},
+          {"type": "column"},
+        ]
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,510 @@
+{% style %}
+{% if settings.navigation_default_font %}
+nav {
+  font-family: var(--paragraph-font);
+  font-weight: 400;
+}
+{% else %}
+nav {
+  font-family: {{ settings.navigation_font_family.family }};
+  font-style: {{ settings.navigation_font_family.style }};
+  font-weight: {{ settings.navigation_font_family.weight }};
+}
+{% endif %}
+nav {
+  font-size: {{ settings.navigation_font_size }}px;
+  line-height: {{ settings.navigation_line_height }};
+  letter-spacing: {{ settings.navigation_letter_spacing }}px;
+  text-transform: {{ settings.navigation_text_transform }};
+}
+header {
+  background-color: {{ settings.header_background }};
+}
+.main-menu {
+  color: {{ settings.menu_color }};
+}
+.main-menu:hover, .main-menu.active {
+  color: {{ settings.menu_hover_color }};
+}
+.dropdown-menu {
+  background-color: {{ settings.submenu_bg }};
+}
+.dropdown-menu a {
+  border-color: transparent;
+}
+.dropdown-menu a:not([role="button"]), .dropdown-menu button {
+  color: {{ settings.submenu_color }};
+}
+.dropdown-menu a:not([role="button"]):hover, .dropdown-menu button:hover, .dropdown-menu button.active, .dropdown-menu button.active a {
+  color: {{ settings.submenu_hover_color }};
+}
+#headerSearchContainer {
+  transition: all 0.3s ease-in-out;
+}
+.main-nav--hidden {
+  visibility: hidden;
+  pointer-events: none;
+  position: relative;
+}
+
+.cart-badge, .wishlist-badge {
+  position: absolute;
+  top: -13px;
+  right: -3px;
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 9999px;
+  padding: 4px 6px;
+}
+
+.wishlist-badge{
+  font-size: 10px;
+}
+
+input::placeholder {
+  color: #273025;
+}
+.search-bar-desktop{
+  display: flex;
+  @media(max-width: 1024px){
+    display: none;
+  }
+}
+  
+{% endstyle %}
+{%- if section.settings.enable_sticky_header -%}
+  {% style %}
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 11;
+  }
+  .header .shopify-section {
+    padding: 0;
+  }
+  {% endstyle %}
+{%- endif -%}
+<div class="py-3 lg:py-0 {% if section.settings.enable_sticky_header %}sticky-header{% endif %}" style="background-color: {{ settings.header_background }};">
+    <div id="headerSearchContainer" class="hidden">
+        {% render 'header-search' %}
+    </div>
+  <div class="relative">
+    <div class="main-nav container mx-auto px-4 flex justify-between items-center">
+        <div class="flex gap-3.5 items-center">
+          <button id="menuToggle" class="md:hidden text-gray-700" aria-label="Menu">
+            {{ 'icon-menu.svg' | inline_asset_content }}
+          </button>
+          <a href="{{ routes.root_url }}" class="text-xl font-bold text-gray-900">
+              {%- if settings.logo != blank -%}
+              <div class="hidden sm:block">
+                  {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+                  {{ settings.logo | image_url: width: 600 | image_tag:
+                  class: '',
+                  width: settings.desktop_logo_size,
+                  alt: logo_alt,
+                  preload: true
+                  }}
+              </div>
+              <div class="block sm:hidden">
+                  {%- if settings.mobile_logo != blank -%}
+                  {%- assign mobile_logo_alt = settings.mobile_logo.alt | default: shop.name | escape -%}
+                  {{ settings.mobile_logo | image_url: width: 600 | image_tag:
+                  class: '',
+                  width: settings.mobile_logo_size,
+                  alt: mobile_logo_alt,
+                  preload: true
+                  }}
+                  {%- else -%}
+                  {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+                  {{ settings.logo | image_url: width: 600 | image_tag:
+                  class: '',
+                  width: settings.mobile_logo_size,
+                  alt: logo_alt,
+                  preload: true
+                  }}
+                  {%- endif -%}
+              </div>
+              {%- else -%}
+              <span class="h2">{{ shop.name }}</span>
+              {%- endif -%}
+          </a>
+        </div>
+        <nav class="hidden md:flex items-center space-x-6 capitalize">
+            {% if section.settings.menu_type_desktop == 'dropdown' %}
+              {% render 'dropdown-menu' linklist:section.settings.menu.links %}
+            {%- else -%}
+              {% render 'mega-menu' linklist:section.settings.menu.links, menu_open_type:section.settings.menu_open_type, mega_menu_style:section.settings.mega_menu_style %}
+            {%- endif -%}
+            {%- if section.settings.enable_search -%}
+              <button class="search-bar-desktop hidden lg:flex items-center bg-[#F1F3F0] gap-1 px-2 py-1 w-56 my-3"
+                  id="triggerHeaderSearch" aria-label="Search Box">
+                  <p class="text-black p-2.5">
+                      {{ 'search-icon.svg' | inline_asset_content }}
+                  </p>
+                  <input id="searchInput" type="text" placeholder="{{ 'global.search.placeholder' | t }}" aria-label="Search Box"
+                      class="search-input flex-1 bg-transparent outline-none border-none text-gray1 w-11/12 text-base font-normal" />
+              </button>
+            {%- endif -%}
+        </nav>
+
+        <div class="flex items-center">
+           <div class="relative h-5 px-2.5 flex items-center justify-center">
+              {% assign cart_type = settings.cart_type %}
+              {% if cart_type == 'drawer' %}
+                <button id="openCartDrawer" class="svg-wrapper" aria-label="Open cart">
+                  {{ 'cart-icon.svg' | inline_asset_content }}
+                </button>
+              {% else %}
+                <a href="{{ routes.cart_url }}" class="svg-wrapper" aria-label="Go to cart">
+                  {{ 'cart-icon.svg' | inline_asset_content }}
+                </a>
+              {% endif %}
+             
+              <span id="cartItemCount"
+                class="cart-badge rounded-full px-2 py-[2px] leading-none {% if cart.item_count == 0 %}hidden{% endif %}"
+                style="background-color: {{ settings.secondary }}">
+                {{ cart.item_count }}
+              </span>
+            </div>
+
+            {% if section.settings.enable_wishlist %}
+              <div class="relative h-5 px-2.5 flex items-center justify-center">
+                <a href="/pages/wishlist" class="svg-wrapper" aria-label="Go to wishlist">
+                  {{ 'list-icon.svg' | inline_asset_content }}
+                </a>
+                <span id="wishlist-header-count"
+                  class="wishlist-badge rounded-full px-2 py-[2px] leading-none hidden"
+                  style="background-color: {{ settings.secondary }}">
+                </span>
+              </div>
+            {% endif %}
+
+            {%- if section.settings.enable_search -%}
+            <button class="svg-wrapper lg:hidden px-2.5" id="triggerHeaderSearchMobile" aria-label="Search">
+                {{- 'search-icon.svg' | inline_asset_content -}}
+            </button>
+            {% endif %}
+            {%- if shop.customer_accounts_enabled -%}
+            <a aria-label="My Account" class="px-2.5"
+                href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}"
+                rel="noopener nofollow">
+                {{ 'user-icon.svg' | inline_asset_content }}
+            </a>
+            {%- endif -%}
+        </div>
+    </div>
+  </div>
+    {% render 'mobile-menu' links:section.settings.menu.links %}
+</div>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', function () {
+    document.getElementById('mobileMenu').classList.toggle('hidden');
+  });
+
+  function toggleSearchUI() {
+    const searchContainer = document.getElementById('headerSearchContainer');
+    const mainNav = document.querySelector('.main-nav');
+
+    searchContainer.classList.toggle('hidden');
+    mainNav.classList.toggle('hidden');
+  }
+
+  document.querySelectorAll('#triggerHeaderSearch, #triggerHeaderSearchMobile').forEach((trigger) => {
+    trigger.addEventListener('click', function(event) {
+      // Prevent the default button behavior
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Use the correct toggleSearchBox function to show the search modal
+      if (typeof toggleSearchBox === 'function') {
+        toggleSearchBox(true);
+      } else {
+        // Fallback to the old toggleSearchUI if toggleSearchBox is not available
+        toggleSearchUI();
+      }
+    });
+  });
+</script>
+
+
+{% schema %}
+{
+  "name": "Header",
+  "class": "section-header",
+  "settings": [ 
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "Menu"
+    },
+    {
+      "type": "select",
+      "id": "menu_type_desktop",
+      "options": [
+        {
+          "value": "dropdown",
+          "label": "Dropdown"
+        },
+        {
+          "value": "mega",
+          "label": "Mega"
+        },
+      ],
+      "default": "mega",
+      "label": "Menu Type"
+    },
+    {
+      "type": "select",
+      "id": "menu_open_type",
+      "options": [
+        {
+          "value": "hover",
+          "label": "Hover"
+        },
+        {
+          "value": "click",
+          "label": "Click"
+        },
+      ],
+      "default": "hover",
+      "label": "Menu Open on"
+    },
+    {
+      "type": "select",
+      "id": "mega_menu_style",
+      "label": "Mega menu style",
+      "default": "list",
+      "options": [
+        { "value": "list", "label": "List" },
+        { "value": "grid", "label": "Grid" }
+      ],
+      "visible_if": "{{ section.settings.menu_type_desktop == 'mega' }}",
+      "info": "If grid is chosen, then collections will be displayed instead of chosen menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_header",
+      "default": false,
+      "label": "Enable sticky header"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_search",
+      "default": true,
+      "label": "Enable search"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_wishlist",
+      "default": false,
+      "label": "Enable Wishlist"
+    },
+    {
+      "type": "header",
+      "content": "Mega menu Grid",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "inline_richtext",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Find the product that suits you best",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "How would you like to take care of yourself today?",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Heading Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Max columns on desktop",
+      "min": 2,
+      "max": 6,
+      "default": 4,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "range",
+      "id": "max_collections",
+      "label": "Max collections to show",
+      "min": 1,
+      "max": 20,
+      "default": 8,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "select",
+      "id": "display_type",
+      "label": "Display type",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "slider", "label": "Slider" }
+      ],
+      "default": "grid",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show dots (slider only)",
+      "default": true,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show arrows (slider only)",
+      "default": true,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "checkbox",
+      "id": "rotate_slides",
+      "label": "t:sections.featuredArticles.settings.rotate_slide",
+      "default": true,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "checkbox",
+      "id": "swipe_mobile",
+      "label": "Enable swipe on mobile",
+      "default": true,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "header",
+      "content": "Collection",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Collection Theme",
+      "options": [
+        { "value": "dark", "label": "Dark" },
+        { "value": "light", "label": "Light" }
+      ],
+      "default": "light",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show arrow icon",
+      "default": true,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "header",
+      "content": "View all Button",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "Show view all button",
+      "default": true,
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Label",
+      "default": "View All",
+      "visible_if": "{{ section.settings.mega_menu_style == 'grid' and section.settings.menu_type_desktop == 'mega'}}",
+    },
+  ],
+  "blocks": [
+    {
+      "type": "featured_block",
+      "name": "Mega menu image",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "featured_block_img",
+          "label": "background Image"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "featured_block_headline",
+          "label": "Badge Text"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "featured_block_content",
+          "label": "Title",
+        },
+        {
+          "type": "text",
+          "id": "featured_block_button-label",
+          "label": "Button Label"
+        },
+        {
+          "type": "url",
+          "id": "featured_block_url",
+          "label": "Button URL"
+        }
+      ]
+    },
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_collection_image",
+          "label": "Show collection featured image",
+          "info": "If enabled, this will use the featured image of the selected collection instead of the image below.",
+          "default": false
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Collection Title",
+          "default": "Collection Title"
+        },
+        {
+          "type": "text",
+          "id": "collection_desc",
+          "label": "Collection Label",
+          "default": "Flat 50% OFF SALE"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

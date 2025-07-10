@@ -1,0 +1,266 @@
+<div class="w-full {% if settings.layout_style == 'detached' %}container px-4 mx-auto {% endif %}mt-8 md:mt-20 mb-8 md:mb-16 text-center">
+  <div class="flex flex-wrap justify-center gap-4 mb-8">
+    {% for block in section.blocks %}
+      {% if block.type == 'badge' %}
+        <div class="text-base font-medium tracking-wider !leading-normal px-3 py-2" style="background-color: {{ block.settings.bg_color }}; color: {{ block.settings.text_color }};">
+          <span>{{ block.settings.text }}</span>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% assign image_blocks = section.blocks | where: "type", "image" %}
+  {% assign desc = section.settings.description %}
+  {% assign desc = desc | replace: '[bg]', '[[BG_START]]' %}
+  {% assign desc = desc | replace: '[/bg]', '[[BG_END]]' %}
+  {% assign desc = desc | replace: '[img]', '<!--IMG-->' %}
+  {% assign parts = desc | split: '<!--IMG-->' %}
+
+  {% assign base_delay = 0 %}
+  {% assign span_duration = 50 %}
+  {% assign image_animation_delay = 800 %}
+  {% assign sequence_step = span_duration %}
+  {% assign image_index = 0 %}
+
+  <div class="text-4xl font-bold tracking-wider text-center">
+    <div class="inline reveal-container">
+      {% for part in parts %}
+        {% assign part_processed = part %}
+        {% assign bg_mode = false %}
+        {% assign bg_split = part_processed | split: '[[BG_START]]' %}
+
+        {% for segment in bg_split %}
+          {% if segment contains '[[BG_END]]' %}
+            {% assign inner_parts = segment | split: '[[BG_END]]' %}
+            {% assign bg_words = inner_parts[0] | split: ' ' %}
+            {% assign remaining = inner_parts[1] %}
+
+            {% for word in bg_words %}
+              {% if word != '' %}
+                <span
+                  class="reveal-item opacity-0 inline-block align-baseline leading-normal"
+                  data-type="text"
+                  data-bg-group="{{ image_index }}"
+                  style="animation-delay: {{ base_delay }}ms"
+                >
+                  <span class="bg-target px-4 py-1 rounded-[40px] mx-1 inline-block leading-normal">
+                    {{ word }}
+                  </span>
+                </span>
+                {% assign base_delay = base_delay | plus: sequence_step %}
+              {% endif %}
+            {% endfor %}
+
+            {% assign normal_words = remaining | split: ' ' %}
+            {% for word in normal_words %}
+              {% if word != '' %}
+                <span
+                  class="reveal-item opacity-0 inline-block align-baseline leading-normal"
+                  data-type="text"
+                  style="animation-delay: {{ base_delay }}ms"
+                >
+                  <span class="animate-text-horizontal leading-normal">{{ word }}</span>
+                </span>
+                {% assign base_delay = base_delay | plus: sequence_step %}
+              {% endif %}
+            {% endfor %}
+
+          {% else %}
+            {% assign normal_words = segment | split: ' ' %}
+            {% for word in normal_words %}
+              {% if word != '' %}
+                <span
+                  class="reveal-item opacity-0 inline-block align-baseline leading-normal"
+                  data-type="text"
+                  style="animation-delay: {{ base_delay }}ms"
+                >
+                  <span class="animate-text-horizontal">{{ word }}</span>
+                </span>
+                {% assign base_delay = base_delay | plus: sequence_step %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+
+        {% assign current_image = image_blocks[image_index] %}
+        {% if current_image.settings.image != blank %}
+          <img
+            src="{{ current_image.settings.image | image_url: width: 300 }}"
+            alt="inserted image"
+            class="reveal-item opacity-0 scale-90 h-16 w-16 inline rounded-full"
+            data-type="image"
+            data-bg-trigger="{{ image_index }}"
+            style="animation-delay: {{ image_animation_delay }}ms"
+          />
+        {% endif %}
+        {% assign image_index = image_index | plus: 1 %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+@layer utilities {
+  @keyframes text-horizontal-reveal {
+    0% {
+      opacity: 0;
+      transform: translateX(20px);
+      background-position: 100% 0;
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+      background-position: 0 0;
+    }
+  }
+
+  @keyframes fade-grow {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-text-horizontal {
+    animation: text-horizontal-reveal 0.8s ease-out forwards;
+    background-image: linear-gradient(to left, rgba(0, 0, 0, 0.2), black);
+    -webkit-background-clip: text;
+    background-size: 300% 100%;
+    background-position: 100% 0;
+    display: inline-block;
+  }
+
+  .bg-target {
+    transition: background-color 0.6s ease;
+  }
+
+  .animate-fade-grow {
+    animation: fade-grow 0.6s ease-out forwards;
+  }
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const el = entry.target;
+      const type = el.dataset.type;
+
+      if (entry.isIntersecting) {
+        el.classList.remove("animate-text-horizontal", "animate-fade-grow");
+        void el.offsetWidth;
+
+        if (type === "text") {
+          el.classList.add("animate-text-horizontal");
+        }
+
+        if (type === "image") {
+          el.classList.add("animate-fade-grow");
+
+          const bgGroup = el.dataset.bgTrigger;
+
+          const computedDelay = getComputedStyle(el).animationDelay || "0s";
+          const delayMs = parseFloat(computedDelay) * 1000;
+
+          setTimeout(() => {
+            document.querySelectorAll(`[data-bg-group="${bgGroup}"] .bg-target`)
+              .forEach(span => {
+                span.classList.add("bg-secondary");
+              });
+          }, delayMs);
+        }
+      } else {
+        if (type === "text") {
+          el.classList.remove("animate-text-horizontal");
+        }
+
+        if (type === "image") {
+          el.classList.remove("animate-fade-grow");
+
+          const bgGroup = el.dataset.bgTrigger;
+          document.querySelectorAll(`[data-bg-group="${bgGroup}"] .bg-target`)
+            .forEach(span => {
+              span.classList.remove("bg-secondary");
+            });
+        }
+      }
+    });
+  }, {
+    threshold: 0.2
+  });
+
+  document.querySelectorAll(".reveal-item").forEach(el => {
+    observer.observe(el);
+  });
+});
+</script>
+
+
+{% schema %}
+{
+  "name": "Animated Text",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description Text",
+      "default": "We at Wally are dedicated to bringing you a nature-first approach [img] when it comes to skincare with herbal ingredients sourced from forests and mountains."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "badge",
+      "name": "Badge",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "🚚 Free Shipping"
+        },
+        {
+          "type": "color",
+          "id": "bg_color",
+          "label": "Background Color",
+          "default": "#F6F7F5"  
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text Color",
+          "default": "#000000"
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Upload Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Animated Text",
+      "category": "Custom",
+      "blocks": [
+        { "type": "badge" },
+        { "type": "image" },
+        { "type": "badge" },
+        { "type": "badge" },
+        { "type": "badge" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,585 @@
+{% schema %}
+{
+  "name": "Look Check",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "hotspot_title",
+      "label": "Title"
+    },
+    {
+      "type": "image_picker",
+      "id": "hotspot_image",
+      "label": "Look Check Image"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "Products",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Select Product",
+          "info": "Sold out products will not be displayed"
+        },
+        {
+          "type": "range",
+          "id": "position_x",
+          "label": "Horizontal Position (%)",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "type": "range",
+          "id": "position_y",
+          "label": "Vertical Position (%)",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "type": "select",
+          "id": "card_position",
+          "label": "Product Card Side",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "right"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 5,
+  "presets": [
+    {
+      "name": "Look Check",
+      "category": "Custom",
+      "blocks": [
+        {
+          "type": "product",
+          "settings": {
+            "position_x": 30,
+            "position_y": 40,
+            "card_position": "right"
+          }
+        },
+        {
+          "type": "product",
+          "settings": {
+            "position_x": 70,
+            "position_y": 60,
+            "card_position": "left"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    function initMobileSlider() {
+      const isMobile = window.innerWidth <= 768;
+      const $slider = document.querySelector('.mobile-slick-slider');
+
+      if (isMobile && $slider && !$slider.classList.contains('slick-initialized')) {
+        $('.mobile-slick-slider').slick({
+          dots: true,
+          infinite: true,
+          speed: 300,
+          centerMode: false,
+          slidesToShow: 2,
+          accessibility: true,
+          arrows: false
+        });
+      }
+    }
+
+    initMobileSlider();
+    window.addEventListener('resize', initMobileSlider);
+
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const productCards = document.querySelectorAll('.look-check-product-card');
+
+    productCards.forEach((card) => {
+      const variantButtons = card.querySelectorAll('.variant-btn');
+      const hiddenInput = card.querySelector('input[name="id"]');
+      const productId = hiddenInput?.className.match(/selected-variant-id-(\d+)/)?.[1];
+
+      if (!productId || !hiddenInput) return;
+
+      const variantDataEl = document.querySelector(`.variants-${productId}`);
+      if (!variantDataEl) return;
+
+      const variants = JSON.parse(variantDataEl.dataset.variants);
+      let selectedOptions = [];
+
+      const defaultVariant = variants[0];
+      selectedOptions = [...defaultVariant.options];
+
+      defaultVariant.options.forEach((opt, idx) => {
+        const group = card.querySelector(`.variant-option-group[data-option-index="${idx}"]`);
+        if (group) {
+          const btn = Array.from(group.querySelectorAll('.variant-btn')).find(b => b.dataset.optionValue === opt);
+          if (btn) {
+            btn.classList.add('font-bold', 'selected-btn');
+          }
+        }
+      });
+
+        variantButtons.forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const optionIndex = parseInt(this.dataset.optionIndex);
+          const optionValue = this.dataset.optionValue;
+
+          selectedOptions[optionIndex] = optionValue;
+
+          const group = this.closest('.variant-option-group');
+          group.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('font-bold', 'selected-btn'));
+          this.classList.add('font-bold', 'selected-btn');
+
+          const matchedVariant = variants.find(v => {
+            return v.options.every((opt, idx) => selectedOptions[idx] === opt);
+          });
+
+          if (matchedVariant) {
+            hiddenInput.value = matchedVariant.id;
+
+            const cartBtn = card.querySelector('.add-to-cart.button');
+            if (cartBtn) {
+              cartBtn.setAttribute('data-id', matchedVariant.id);
+            }
+
+            const paymentInput = card.querySelector(`.payment-variant-id-${productId}`);
+            if (paymentInput) {
+              paymentInput.value = matchedVariant.id;
+            }
+          }
+        });
+      });
+    });
+  });
+</script>
+
+<div class="hotspot-container overflow-hidden relative w-full max-w-full" style="position: relative;">
+  {% if section.settings.hotspot_title %}
+    <h2 class="absolute pt-[13px] px-4 md:pt-[57px] w-full large container left-1/2 -translate-x-1/2">{{ section.settings.hotspot_title }}</h2>
+  {% endif %}
+  {% if section.settings.hotspot_image %}
+    <img
+      src="{{ section.settings.hotspot_image | image_url: width: full }}"
+      alt="Look Check Image"
+      class="look-image"
+      width="100%"
+      height="100%"
+    >
+
+    <!-- Desktop version: visible on screens > 768px -->
+    <div class="desktop-hotspots hidden md:block">
+      {% for block in section.blocks %}
+      {% assign product = all_products[block.settings.product] %}
+      {%- assign is_sold_out = true -%}
+      {%- for variant in product.variants -%}
+        {%- if variant.available -%}
+          {%- assign is_sold_out = false -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {% if product and product.available and is_sold_out == false %}
+        <div
+          class="hotspot-wrapper flex items-center"
+          style="position: absolute; top: {{ block.settings.position_y }}%; {% if block.settings.card_position == 'left' %} left: calc({{ block.settings.position_x }}% - 9rem); {% else %} left: {{ block.settings.position_x }}%; {% endif %} z-index: 5;"
+        >
+          {% if block.settings.card_position == 'left' %}
+            <div class="line w-36 h-0.5"></div>
+            <div class="hotspot-dot relative w-5 h-5"></div>
+          {% else %}
+            <div class="hotspot-dot relative w-5 h-5"></div>
+            <div class="line w-36 h-0.5"></div>
+          {% endif %}
+          <div class="look-check-product-card {{ block.settings.card_position }} flex flex-col desktop-look-check">
+            <div class="flex gap-4 overflow-auto">
+              <div class="look-check-card-image">
+                <img
+                  class="product-img object-cover"
+                  src="{{ product.featured_image | image_url: small }}"
+                  width="100%"
+                  height="100%"
+                  alt="{{ product.title }}"
+                >
+              </div>
+              <div class="product-info w-full">
+                <h3>{{ product.title }}</h3>
+                <p class="price-line">
+                  <span class="price">{{ product.price | money }}</span>
+                  {% if product.compare_at_price > product.price %}
+                    <span class="compare">{{ product.compare_at_price | money }}</span>
+                  {% endif %}
+                </p>
+
+                {% if product.variants.size > 1 %}
+                  {% for option in product.options %}
+                    <div class="flex flex-wrap flex-col gap-x-3 gap-y-2 mt-4" style="color: #273025;">
+                      <label class="block font-semibold">{{ option }}</label>
+                      <div class="flex gap-2 flex-wrap variant-option-group" data-option-index="{{ forloop.index0 }}">
+                        {% assign option_index = forloop.index0 %}
+                        {% assign option_values = '' %}
+                        {% for variant in product.variants %}
+                          {% assign option_value = variant.options[option_index] %}
+                          {% unless option_values contains option_value %}
+                            {% assign option_values = option_values | append: option_value | append: ',' %}
+                          {% endunless %}
+                        {% endfor %}
+                        {% assign unique_values = option_values | split: ',' %}
+                        {% for value in unique_values %}
+                          {% if value != '' %}
+                            {%- assign is_available = false -%}
+                            {% for variant in product.variants %}
+                              {% if variant.options[option_index] == value and variant.available %}
+                                {% assign is_available = true %}
+                              {% endif %}
+                            {% endfor %}
+                            <button
+                              class="variant-btn rounded {% if option == 'Color' %} p-[1.5px] h-[27px] rounded-full {% else %} p-1 border border-black{% endif %} {% unless is_available %} line-through opacity-50 cursor-not-allowed {% endunless %}"
+                              type="button"
+                              aria-label="{{ value }}"
+                              data-option-index="{{ option_index }}"
+                              data-option-value="{{ value }}"
+                            >
+                              {% if option == 'Color' %}
+                                <span class="color p-0.5 rounded-full bg-white w-6 h-6 rounded-full inline-block"
+                                  ><span
+                                    class="w-full h-full block rounded-full border border-gray-50"
+                                    style="background-color: {{ value | downcase }};"
+                                  ></span
+                                ></span>
+                              {% else %}
+                                {{ value | capitalize }}
+                              {% endif %}
+                            </button>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endfor %}
+
+                  <input
+                    type="hidden"
+                    class="selected-variant-id-{{ product.id }}"
+                    name="id"
+                    value="{{ product.variants.first.id }}"
+                  >
+                {% endif %}
+              </div>
+            </div>
+            {% form 'product', product %}
+              <input
+                type="hidden"
+                name="id"
+                value="{{ product.variants.first.id }}"
+                class="payment-variant-id-{{ product.id }}"
+              >
+              {{ form | payment_button }}
+            {% endform %}
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+    </div>
+
+    <!-- Mobile version: slick slider -->
+    <div class="mobile-hotspots w-full bottom-10 absolute block md:hidden">
+      <div class="mobile-slick-slider">
+        {% for block in section.blocks %}
+          {% assign product = all_products[block.settings.product] %}
+          {% assign is_sold_out = true %}
+          {% for variant in product.variants %}
+            {% if variant.available %}
+              {% assign is_sold_out = false %}
+            {% endif %}
+          {% endfor %}
+
+          {% if product and product.available and is_sold_out == false %}
+            <div class="look-check-product-card px-2">
+              <div>
+              <div>
+                <img
+                  class="product-img object-cover"
+                  src="{{ product.featured_image | image_url: small }}"
+                  width=""
+                  height=""
+                  alt="{{ product.title }}"
+                >
+              </div>
+              <div class="product-info">
+                <h3>{{ product.title }}</h3>
+                <p class="price-line">
+                  <span class="price">{{ product.price | money }}</span>
+                  {% if product.compare_at_price > product.price %}
+                    <span class="compare">{{ product.compare_at_price | money }}</span>
+                  {% endif %}
+                </p>
+
+                {% if product.variants.size > 1 %}
+                  {% for option in product.options %}
+                    <div class="flex flex-wrap flex-col gap-x-3 gap-y-2 mt-4" style="color: #273025;">
+                      <label class="block font-semibold">{{ option }}</label>
+                      <div class="flex gap-2 flex-wrap variant-option-group" data-option-index="{{ forloop.index0 }}">
+                        {% assign option_index = forloop.index0 %}
+                        {% assign option_values = '' %}
+                        {% for variant in product.variants %}
+                          {% assign option_value = variant.options[option_index] %}
+                          {% unless option_values contains option_value %}
+                            {% assign option_values = option_values | append: option_value | append: ',' %}
+                          {% endunless %}
+                        {% endfor %}
+                        {% assign unique_values = option_values | split: ',' %}
+                        {% for value in unique_values %}
+                          {% if value != '' %}
+                            {%- assign is_available = false -%}
+                            {% for variant in product.variants %}
+                              {% if variant.options[option_index] == value and variant.available %}
+                                {% assign is_available = true %}
+                              {% endif %}
+                            {% endfor %}
+                            <button
+                              class="variant-btn rounded {% if option == 'Color' %} p-[1.5px] h-[27px] rounded-full {% else %} p-1 border border-black{% endif %} {% unless is_available %} line-through opacity-50 cursor-not-allowed {% endunless %}"
+                              type="button"
+                              aria-label="{{ value }}"
+                              data-option-index="{{ option_index }}"
+                              data-option-value="{{ value }}"
+                            >
+                              {% if option == 'Color' %}
+                                <span class="color p-0.5 rounded-full bg-white w-6 h-6 rounded-full inline-block"
+                                  ><span
+                                    class="w-full h-full block rounded-full border border-gray-50"
+                                    style="background-color: {{ value | downcase }};"
+                                  ></span
+                                ></span>
+                              {% else %}
+                                {{ value | capitalize }}
+                              {% endif %}
+                            </button>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endfor %}
+
+                  <input
+                    type="hidden"
+                    class="selected-variant-id-{{ product.id }}"
+                    name="id"
+                    value="{{ product.variants.first.id }}"
+                  >
+                {% endif %}
+
+                <div class="variants-{{ product.id }}" data-variants='{{ product.variants | json | escape }}' style="display:none;"></div>
+              </div>
+            </div>
+            {% form 'product', product %}
+              <input
+                type="hidden"
+                name="id"
+                value="{{ product.variants.first.id }}"
+                class="payment-variant-id-{{ product.id }}"
+              >
+              {{ form | payment_button }}
+            {% endform %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  .hotspot-container h2{
+    color: #273025;
+  }
+  .look-check-card-image {
+    @media(min-width: 1200px){
+      width: 130px;
+      height: 130px;
+    }
+  }
+  .selected-btn .color {
+    border: 1px solid #000;
+  }
+  .hotspot-dot {
+    background: #00ff00;
+    border: 4px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .line {
+    background: white;
+  }
+  .desktop-look-check{
+    max-height: 250px;
+  }
+  .look-check-product-card {
+    position: absolute;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    display: flex;
+    gap: 24px;
+    width: 25vw;
+    z-index: 1;
+    transition: all 0.3s ease;
+    @media(min-width: 768px) and (max-width: 1200px){
+      width:30vw;
+    }
+  }
+  .look-check-product-card.left {
+    right: 100%;
+  }
+  .look-check-product-card.right {
+    left: 100%;
+  }
+  .product-img {
+    height: -webkit-fill-available;
+    border-radius: 24px;
+  }
+  .product-info {
+    flex: 1;
+  }
+  .product-info h3 {
+    font-weight: 700;
+    font-family: 'Urbanist';
+    font-size: 20px;  
+    margin: 0 0 4px 0;
+    word-break: break-word;
+  }
+  .price-line{
+    font-size: 14px;
+  }
+  .price {
+    color: #000000;
+    font-weight: 600;
+  }
+  .compare {
+    color: #8E9689;
+    font-weight: bold;
+    text-decoration: line-through;
+  }
+
+  @media screen and (max-width: 767px) {
+    .mobile-slick-slider .slick-track{
+      height: 350px;
+    }
+    .look-check-product-card {
+      position: static;
+      padding: 12px;
+      gap: 8px;
+      flex-direction: column;
+      display: flex !important;
+      justify-content: space-between;
+      align-items: flex-start;
+      height: 350px;
+      overflow: auto;
+      scrollbar-width: none;
+      > div {
+        width: 100%;
+      }
+    }
+    .product-info{
+      padding-top: 12px;
+    }
+    .product-img {
+      width: 100%;
+      height: 160px;
+    }
+    .look-image{
+      height: 100vh;
+      object-fit: cover;
+    }
+    .hotspot-wrapper{
+      position: relative !important;
+    }
+    .mobile-hotspots .slick-dots{
+      bottom: -35px;
+    }
+    .mobile-hotspots .slick-track{
+      align-items: stretch;
+      gap: 12px;
+    }
+    .mobile-hotspots .slick-slide{
+      height: auto;
+      >div:first-child {
+         display: flex;
+          height: 100%;
+      }
+    }
+  }
+
+  @media screen and (min-width: 1024px) and (max-width: 1439px) {
+    .look-check-product-card.right {
+      left: 30%;
+    }
+
+    .look-check-product-card.left {
+      right: 30%;
+    }
+  }
+  
+  @media screen and (min-width: 1440px) {
+    .look-check-product-card.right {
+      left: 100%;
+    }
+  
+    .look-check-product-card.left {
+      right: 100%;
+    }
+  }
+
+  @media screen and (min-width: 768px) and (max-width: 1200px) {
+  .look-check-product-card {
+    padding: 16px;
+    gap: 16px;
+  }
+  .desktop-look-check{
+    max-height: 180px;
+  }
+
+  .look-check-product-card.left {
+    right: 20%;
+  }
+
+  .look-check-product-card.right {
+    left: 20%;
+  }
+
+  .product-img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .product-info h3 {
+    font-size: 16px;
+  }
+
+  .price-line {
+    font-size: 12px;
+  }
+
+  .variant-btn {
+    font-size: 12px;
+  }
+}
+
+</style>

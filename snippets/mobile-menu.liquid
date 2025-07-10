@@ -1,0 +1,117 @@
+<nav id="mobileMenu" class="hidden md:hidden bg-white shadow-md border-b">
+    {% for link in links %}
+        <div>
+            <!-- Main Menu Item -->
+            <button class="mobile-menu-toggle flex items-center justify-between w-full text-left px-4 py-2">
+                {% if link.links != blank %}
+                    {{ link.title }}
+                    <span class="svg-wrapper mobile-up-arrow hidden">
+                        {{- 'up_arrow.svg' | inline_asset_content -}}
+                    </span>
+                    <span class="svg-wrapper mobile-down-arrow">
+                        {{- 'down_arrow.svg' | inline_asset_content -}}
+                    </span>
+                {% else %}
+                    <a href="{{ link.url }}">{{ link.title }}</a>
+                {% endif %}
+            </button>
+
+            <!-- Submenu -->
+            {% if link.links != blank %}
+            <div class="hidden mobile-submenu">
+                {% for sub_link in link.links %}
+                    {% if sub_link.links != blank %}
+                        <!-- Nested Submenu -->
+                        <button class="mobile-submenu-toggle flex items-center justify-between w-full text-left pl-6 pr-4 py-2">
+                            {{ sub_link.title }} 
+                            <span class="svg-wrapper mobile-up-arrow hidden">
+                                {{- 'up_arrow.svg' | inline_asset_content -}}
+                            </span>
+                            <span class="svg-wrapper mobile-down-arrow">
+                                {{- 'down_arrow.svg' | inline_asset_content -}}
+                            </span>
+                        </button>
+                        <div class="hidden pl-8 mobile-submenu-nested">
+                            {% for sub_sub_link in sub_link.links %}
+                                <a href="{{ sub_sub_link.url }}" class="block py-2 hover:bg-gray-300">
+                                    {{ sub_sub_link.title }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <a href="{{ sub_link.url }}" class="block px-4 py-2">{{ sub_link.title }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Toggle Main Menu Items
+    document.querySelectorAll(".mobile-menu-toggle").forEach(function (button) {
+        button.addEventListener("click", function () {
+            let submenu = this.nextElementSibling;
+
+            // Close all other main submenus and their nested submenus
+            document.querySelectorAll(".mobile-submenu").forEach(menu => {
+                if (menu !== submenu) {
+                    menu.classList.add("hidden");
+
+                    let btn = menu.previousElementSibling;
+                    if (btn) {
+                        btn.querySelector(".mobile-down-arrow").classList.remove("hidden");
+                        btn.querySelector(".mobile-up-arrow").classList.add("hidden");
+                    }
+
+                    // Also close nested submenus inside closed main submenus
+                    menu.querySelectorAll(".mobile-submenu-nested").forEach(nestedMenu => {
+                        nestedMenu.classList.add("hidden");
+                        let nestedBtn = nestedMenu.previousElementSibling;
+                        if (nestedBtn) {
+                            nestedBtn.querySelector(".mobile-down-arrow").classList.remove("hidden");
+                            nestedBtn.querySelector(".mobile-up-arrow").classList.add("hidden");
+                        }
+                    });
+                }
+            });
+
+            // Toggle clicked submenu
+            submenu.classList.toggle("hidden");
+
+            // Toggle arrow icons
+            this.querySelector(".mobile-down-arrow").classList.toggle("hidden");
+            this.querySelector(".mobile-up-arrow").classList.toggle("hidden");
+        });
+    });
+
+    // Toggle Submenu Items (Nested)
+    document.querySelectorAll(".mobile-submenu-toggle").forEach(function (button) {
+        button.addEventListener("click", function () {
+            let nestedSubmenu = this.nextElementSibling;
+
+            // Close all other nested submenus within the same parent menu
+            this.closest(".mobile-submenu").querySelectorAll(".mobile-submenu-nested").forEach(menu => {
+                if (menu !== nestedSubmenu) {
+                    menu.classList.add("hidden");
+
+                    let btn = menu.previousElementSibling;
+                    if (btn) {
+                        btn.querySelector(".mobile-down-arrow").classList.remove("hidden");
+                        btn.querySelector(".mobile-up-arrow").classList.add("hidden");
+                    }
+                }
+            });
+
+            // Toggle clicked nested submenu
+            nestedSubmenu.classList.toggle("hidden");
+
+            // Toggle arrow icons
+            this.querySelector(".mobile-down-arrow").classList.toggle("hidden");
+            this.querySelector(".mobile-up-arrow").classList.toggle("hidden");
+        });
+    });
+});
+</script>

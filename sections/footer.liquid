@@ -1,0 +1,344 @@
+<footer class="max-md:py-10 md:pb-9 md:pt-10"
+  style="background: 
+    {% if section.settings.background_image %}
+      url('{{ section.settings.background_image | image_url }}') no-repeat center center / cover;
+    {% else %}
+      {{ settings.footer_bg }};
+    {% endif %}
+    color: {{ settings.footer_text_color }};">
+ <div class="container mx-auto px-4">
+  <div class="flex flex-col lg:flex-row justify-between lg:gap-10">
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {% when "brand_information" %}
+          <div class="w-full lg:w-[42%] max-lg:mb-3" style="color: {{ settings.footer_text_color }};" {{ block.shopify_attributes }}>
+            {% if block.settings.heading != blank %}
+              <h2 class="mb-2 heading text-base">{{ block.settings.heading }}</h2>
+            {% endif %}
+            {% if block.settings.description != blank %}
+              <div class="richtext">{{ block.settings.description }}</div>
+            {% endif %}
+            {% if block.settings.show-social-media-icons != blank %}
+              <div class="flex space-x-4 mt-6">
+                {% render 'social-icons' %}
+              </div>
+            {% endif %}
+          </div>
+
+       {% when "link_list" %}
+        <div class="max-lg:mt-2 w-full lg:w-1/5 border-b lg:border-b-0" style="border-color: #273025;" {{ block.shopify_attributes }}>
+          {% if block.settings.menu_heading != blank %}
+            <h2 class="mb-3 lg:block hidden heading text-base font-bold">{{ block.settings.menu_heading }}</h2>
+          {% endif %}
+      
+          <div class="lg:hidden">
+            <button class="accordion-toggle flex justify-between items-center w-full py-4">
+              <h2 class="heading font-bold text-base">{{ block.settings.menu_heading }}</h2>
+              <span class="accordion-icon transition-transform duration-300">
+                <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M14.2373 16.6997C14.5106 16.4263 14.9538 16.4263 15.2272 16.6997L20.3572 21.8297L25.4873 16.6997C25.7606 16.4263 26.2038 16.4263 26.4772 16.6997C26.7506 16.973 26.7506 17.4162 26.4772 17.6896L20.8522 23.3146C20.5788 23.588 20.1356 23.588 19.8623 23.3146L14.2373 17.6896C13.9639 17.4162 13.9639 16.973 14.2373 16.6997Z" fill="{{ settings.footer_text_color }}"/>
+                </svg>
+              </span>
+            </button>
+            <ul class="accordion-content hidden space-y-2">
+              {% for link in linklists[block.settings.menu].links %}
+                <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+      
+          <ul class="space-y-2 hidden lg:block">
+            {% for link in linklists[block.settings.menu].links %}
+              <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endcase %}
+    {% endfor %}
+
+   {% if section.settings.enable-newsletter-subscription != blank %}
+      <div class="w-full lg:w-1/4 mt-6 lg:mt-0">
+        {% if section.settings.newsletter-heading != blank %}
+          <h2 class="mb-3 heading text-base font-bold">
+            {{ section.settings.newsletter-heading }}
+          </h2>
+        {% endif %}
+        {% if section.settings.newsletter-description != blank %}
+          <div class="richtext">{{ section.settings.newsletter-description }}</div>
+        {% endif %}
+    
+        {% form 'customer', id: 'newsletter_form', class: 'newsletter-form' %}
+          <input type="hidden" name="contact[tags]" value="newsletter" />
+    
+          <div class="flex overflow-hidden" style="background: {{ settings.form_field_color }};">
+            <label for="email" class="visually-hidden">Email Address</label>
+            <input 
+              id="email"
+              type="email" 
+              name="contact[email]" 
+              placeholder="Email Address" 
+              class="flex-1 px-4 py-3 outline-none" 
+              style="color: {{ settings.form_label_color }};max-width: calc(100% - 40px);"
+              required
+            />
+    
+            <button type="submit" aria-label="Submit" class="newsletter-form__button">
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0.357422" y="0.00732422" width="40" height="40" rx="20" fill="white"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M21.7897 13.8872C21.5163 13.6138 21.0731 13.6138 20.7998 13.8872C20.5264 14.1605 20.5264 14.6037 20.7998 14.8771L25.2298 19.3071H13.7947C13.4081 19.3071 13.0947 19.6205 13.0947 20.0071C13.0947 20.3937 13.4081 20.7071 13.7947 20.7071H25.2298L20.7998 25.1372C20.5264 25.4105 20.5264 25.8537 20.7998 26.1271C21.0731 26.4005 21.5163 26.4005 21.7897 26.1271L27.4147 20.5021C27.4818 20.435 27.5325 20.3576 27.5666 20.2751C27.5997 20.1953 27.6184 20.1081 27.6197 20.0167C27.6199 20.0023 27.6196 19.9879 27.6189 19.9735C27.6109 19.8058 27.5428 19.6403 27.4147 19.5122L21.7897 13.8872Z" fill="{{ settings.footer_bg }}"/>
+              </svg>
+            </button>
+          </div>
+    
+          {% if form.errors %}
+            <p class="pt-4" style="color: {{ settings.error_color }}">{{ form.errors.messages.email }}{{ 'global.newsletter.subscribe_failure' | t }}</p>
+          {% endif %}
+    
+          {% if form.posted_successfully? %}
+            <p class="pt-4" style="color: {{ settings.success_color }}">{{ 'global.newsletter.subscribe_success' | t }}</p>
+          {% endif %}
+        {% endform %}
+      </div>
+    {% endif %}
+  </div>
+  
+  <div class="policy-links flex flex-col items-start md:items-baseline text-base lg:flex-row gap-6 lg:gap-4 lg:border-t justify-between pt-5 lg:mt-7" style="border-color: #273025; color: {{ settings.footer_text_color }};">
+    {% if section.settings.enable-currency-selector != blank %}
+      <div>
+        <form method="post" action="{{ routes.cart_url }}">
+          <label for="currency" class="visually-hidden">Choose an option:</label> 
+          <select name="currency" id="currency" class="lg:px-4 lg:py-2" 
+            style="background:transparent; color: {{ settings.footer_text_color }};">
+            {% for currency in shop.enabled_currencies %}
+              <option value="{{ currency.iso_code }}" {% if currency.iso_code == cart.currency.iso_code %}selected{% endif %}>
+                {{ currency.name }} ({{ currency.symbol }})
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="sr-only">Submit</button>
+        </form>
+      </div>
+    {% endif %}
+    {% if section.settings.show-payment-methods != blank %}
+      <div class="w-full lg:w-1/4">
+        <div class="flex justify-center space-x-4">
+          {% for type in shop.enabled_payment_types %}
+            <img src="{{ type | payment_type_img_url }}" alt="{{ type | replace: '_', ' ' | capitalize }}" class="h-6" width="50px" height="50px">
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if section.settings.show-policy %}
+        <ul class="flex flex-wrap flex-col sm:flex-row gap-6 justify-start text-base">
+          {% for link in linklists[section.settings.policy-links].links %}
+            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+          {% endfor %}
+        </ul>
+    {% endif %}
+    
+    <p class="text-base copyrights max-lg:border-t max-lg:pt-6 max-lg:w-full">{{ section.settings.copyrights-content }}</p>
+  </div>
+</div>
+</footer>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".accordion-toggle").forEach((toggle) => {
+      toggle.addEventListener("click", function () {
+        let content = this.nextElementSibling;
+        let icon = this.querySelector(".accordion-icon svg");
+  
+        content.classList.toggle("hidden");
+        
+        if (content.classList.contains("hidden")) {
+          icon.style.transform = "rotate(0deg)";
+        } else {
+          icon.style.transform = "rotate(180deg)";
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  footer p{
+    color: {{ settings.footer_text_color }};
+  }
+  footer .heading{
+    color: {{settings.footer_heading_color}};
+  }
+  .copyrights{
+    padding-right: 33px;
+  }
+  footer a:hover{
+    color: var(--link-hover-text-color);
+  }
+  .newsletter-form{
+    input::placeholder{
+      color: #000000;
+    }
+  }
+  .visually-hidden{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 1024px) {
+    .lg\:px-15 {
+      padding-left: 60px;
+      padding-right: 60px;
+    }
+  }
+  @media only screen and (max-width: 749px) {
+    .list-social {
+      justify-content: center;
+    }
+    .copyrights{
+      padding-right: 0px;
+    }
+  }
+  .list-social__item .icon {
+    height: 2rem;
+    width: 2rem;
+  }
+  
+  .list-social__link {
+    align-items: center;
+    display: flex;
+    color: rgb(var(--color-foreground));
+  }
+  
+  .utility-bar .list-social__link {
+    padding: 0 0.8rem;
+    height: 3.8rem;
+  }
+  
+  #language-selector {
+    background: transparent; 
+    color: {{ settings.footer_text_color }};
+    cursor: pointer;
+  }
+
+  /* Social media icons responsive sizes */
+  .list-social__item .svg-wrapper svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  @media only screen and (max-width: 749px) {
+    .list-social__item .svg-wrapper svg {
+      width: 48px;
+      height: 48px;
+    }
+  }
+</style>
+
+{% schema %}
+  {
+    "name": "t:sections.footer.name",
+    "blocks": [
+      {
+        "type": "@app"
+      },
+      {
+        "type": "link_list",
+        "name": "t:sections.footer.blocks.link_list.name",
+        "settings": [
+          {
+            "type": "inline_richtext",
+            "id": "menu_heading",
+            "label": "t:sections.footer.blocks.link_list.settings.menu_heading"
+          },
+          {
+            "type": "link_list",
+            "id": "menu",
+            "label": "Menu",
+            "info": "t:sections.footer.blocks.link_list.settings.menu"
+          }
+        ]
+      },
+      {
+        "type": "brand_information",
+        "name": "t:sections.footer.blocks.brand_information.name",
+        "settings": [
+          {
+            "type": "inline_richtext",
+            "id": "heading",
+            "label": "t:sections.footer.blocks.brand_information.settings.heading"
+          },
+          {
+            "type": "richtext",
+            "id": "description",
+            "label": "t:sections.footer.blocks.brand_information.settings.description"
+          },
+          {
+            "type": "checkbox",
+            "id": "show-social-media-icons",
+            "default": true,
+            "label": "t:sections.footer.blocks.brand_information.settings.show-social-media-icons"
+          },
+        ]
+      },
+    ],
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "background_image",
+        "label": "t:sections.footer.settings.background_image"
+      },
+      {
+        "type": "checkbox",
+        "id": "show-policy",
+        "default": true,
+        "label": "t:sections.footer.settings.show-policy"
+      },
+      {
+        "type": "link_list",
+        "id": "policy-links",
+        "label": "Policy Links",
+        "info": "t:sections.footer.settings.policy-links"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable-currency-selector",
+        "default": false,
+        "label": "t:sections.footer.settings.enable-currency-selector"
+      },
+      {
+        "type": "checkbox",
+        "id": "show-payment-methods",
+        "default": true,
+        "label": "t:sections.footer.settings.show-payment-methods"
+      },
+      {
+        "type": "text",
+        "id": "copyrights-content",
+        "label": "t:sections.footer.settings.copyrights-content"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable-newsletter-subscription",
+        "default": true,
+        "label": "t:sections.footer.settings.enable-newsletter-subscription"
+      },
+      {
+        "type": "inline_richtext",
+        "id": "newsletter-heading",
+        "label": "t:sections.footer.settings.newsletter-heading"
+      },
+      {
+        "type": "richtext",
+        "id": "newsletter-description",
+        "label": "t:sections.footer.settings.newsletter-description"
+      },
+    ]
+  }
+{% endschema %}

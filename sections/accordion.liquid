@@ -1,0 +1,165 @@
+<style>
+  .rotate-180 {
+    transform: rotate(180deg);
+}
+</style>
+
+{% case section.settings.content_alignment %}
+{% when 'left' %}
+  {% assign content_alignment = 'justify-start text-left' %}
+{% when 'right' %}
+  {% assign content_alignment = 'flex-row-reverse text-right' %}
+{% else %}
+  {% assign content_alignment = 'flex-col text-center items-center justify-center' %}
+{% endcase %}
+<section style="background-color: {{ section.settings.bg_color }}">
+<div class="container px-4 mx-auto accordion py-8 md:py-10">
+  {% if section.settings.accordion_heading %}
+    <h2 class="large mb-4 {{ content_alignment }}">{{ section.settings.accordion_heading }}</h2>
+  {% endif %}
+  {% if section.settings.description %}
+    <div class="description richtext {{ content_alignment }}">{{ section.settings.description }}</div>
+  {% endif %}
+
+  <div id="accordion-{{ section.id }}" class="space-y-3">
+    {% for block in section.blocks %}
+      <div class="border-b" style="border-color: #EEF1EC">
+        <button 
+          class="w-full text-left flex justify-between items-center py-3 hover:cursor-pointer" id="toggle-accordion-{{ section.id }}-{{ forloop.index0 }}"
+          aria-expanded="false"
+          data-index="{{ forloop.index0 }}"
+        >
+          <p class="text-xl tracking-wider font-semibold !leading-normal">{{ block.settings.accordion_item_title }}</p>
+        <svg width="14" height="8" class="transition-transform duration-200 transform rotate-0 icon-chevron" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M1.05854 0.887398C1.33191 0.614031 1.77512 0.614031 2.04849 0.887398L7.17852 6.01742L12.3085 0.887398C12.5819 0.614031 13.0251 0.614031 13.2985 0.887398C13.5719 1.16077 13.5719 1.60398 13.2985 1.87735L7.67349 7.50235C7.40012 7.77571 6.95691 7.77571 6.68354 7.50235L1.05854 1.87735C0.785174 1.60398 0.785174 1.16077 1.05854 0.887398Z" fill="black"/>
+        </svg>
+
+        </button>
+        <div class="hidden pb-6 font-medium text-base accordion_item_description" style="color: #273025" data-index="{{ forloop.index0 }}">
+          <p class="font-medium !leading-normal">{{ block.settings.accordion_item_description }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+</section>      
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    {% if section.settings.first-row-open %}
+    // Open the first accordion item by default
+    const firstDesc = document.querySelector(`#accordion-{{ section.id }} .accordion_item_description[data-index='0']`);
+    const firstToggle = document.getElementById('toggle-accordion-{{ section.id }}-0');
+    const firstIcon = firstToggle?.querySelector('.icon-chevron');
+    
+    if (firstDesc && firstToggle) {
+      firstDesc.classList.remove('hidden');
+      firstToggle.setAttribute('aria-expanded', 'true');
+      if (firstIcon) firstIcon.classList.add('rotate-180');
+    }
+    {% endif %}
+    {% for block in section.blocks %}
+      const toggle{{ forloop.index0 }} = document.getElementById('toggle-accordion-{{ section.id }}-{{ forloop.index0 }}');
+      if (toggle{{ forloop.index0 }}) {
+        toggle{{ forloop.index0 }}.addEventListener('click', function () {
+          const index = this.dataset.index;
+          const desc = document.querySelector(`#accordion-{{ section.id }} .accordion_item_description[data-index='${index}']`);
+          const icon = this.querySelector('.icon-chevron');
+
+          const isOpen = !desc.classList.contains('hidden');
+
+          document.querySelectorAll('.accordion_item_description').forEach(el => el.classList.add('hidden'));
+          document.querySelectorAll('.icon-chevron').forEach(icon => icon.classList.remove('rotate-180'));
+
+          if (!isOpen) {
+            desc.classList.remove('hidden');
+            icon.classList.add('rotate-180');
+          }
+        });
+      }
+    {% endfor %}
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Accordion",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "accordion_heading",
+      "label": "Heading",
+      "default": "FAQs"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+    },
+    {
+      "type": "checkbox",
+      "id": "first-row-open",
+      "label": "Open first collapsible row",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Content Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color",
+      "label": "Background Color",
+      "id": "bg_color",
+      "default" : "#FBFCFA"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "Accordion item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "accordion_item_title",
+          "label": "Title",
+          "default": "What is your return policy?"
+        },
+        {
+          "type": "textarea",
+          "id": "accordion_item_description",
+          "label": "Description",
+          "default": "You can return any unwanted item within 30 days of purchase for a full refund."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    {
+      "name": "Accordion",
+      "category": "Content",
+      "blocks": [
+        {
+          "type": "accordion"
+        },
+        {
+          "type": "accordion"
+        },
+        {
+          "type": "accordion"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

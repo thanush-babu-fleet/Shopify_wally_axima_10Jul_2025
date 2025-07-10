@@ -1,0 +1,288 @@
+{% assign columns = section.settings.columns | default: 2 %}
+{% assign display_type = section.settings.display_type | default: 'slider' %}
+
+<div class="w-full py-8 md:py-10{% if settings.layout_style == 'detached' and display_type == 'grid' %} container px-4 mx-auto {% endif %}">
+  <div class="{% if display_type == 'slider' %}promo-cards-slider-{{ section.id }}{% else %}grid grid-cols-1 md:grid-cols-{{ columns }} items-stretch{% if settings.layout_style == 'detached' %} card-space{% endif %}{% endif %}"
+    {% if display_type == 'slider' %} data-columns="{{ columns }}" {% endif %}>
+    {% for block in section.blocks %}
+     <div class="promo-banner relative !flex flex-col-reverse flex-col md:flex-row items-center justify-between px-8 py-10 text-white w-full h-full" 
+      style="{% if block.settings.background_gradient != blank %}background: {{ block.settings.background_gradient | escape }};{% endif %}"
+      data-gradient="{{ block.settings.background_gradient }}"
+      {{ block.shopify_attributes }}>
+        <div class="w-full md:w-[70%] max-md:mt-7 flex flex-col items-center md:items-start justify-center md:justify-start">
+          <div class="px-2.5 py-1 mb-3 text-xs tracking-wider w-fit" style="background:{{ block.settings.badge_bg_color }}; color: {{ block.settings.badge_color }}">{{ block.settings.subtitle | truncate: 80 }}</div>
+          <div class="text-3xl !leading-normal font-bold tracking-wider text-center md:text-left mb-6 md:mb-12 text-[{{ block.settings.content_color }}]">{{ block.settings.title | truncate: 150 }}</div>
+          {% if block.settings.button_link != blank %}
+            <a href="{{ block.settings.button_link }}" class="bg-primary w-fit text-white px-8 py-3 rounded text-base font-semibold flex items-center gap-2 hover:bg-gray-800 transition" style="text-transform: var(--btn-text-transform);">
+              {{ block.settings.button_label | escape }} 
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9333 13.8798C21.6599 13.6065 21.2167 13.6065 20.9433 13.8798C20.6699 14.1532 20.6699 14.5964 20.9433 14.8698L25.3733 19.2998H13.9383C13.5517 19.2998 13.2383 19.6132 13.2383 19.9998C13.2383 20.3864 13.5517 20.6998 13.9383 20.6998H25.3733L20.9433 25.1298C20.6699 25.4032 20.6699 25.8464 20.9433 26.1198C21.2167 26.3931 21.6599 26.3931 21.9333 26.1198L27.5583 20.4948C27.6254 20.4277 27.676 20.3503 27.7102 20.2678C27.7432 20.188 27.762 20.1008 27.7632 20.0094C27.7634 19.995 27.7632 19.9806 27.7625 19.9662C27.7545 19.7984 27.6864 19.633 27.5583 19.5048L21.9333 13.8798Z" fill="#F6F7F5"/>
+              </svg>
+            </a>
+          {% else %}
+            <button class="bg-primary w-fit text-white px-10 py-3 text-base font-semibold flex items-center gap-2 hover:bg-gray-800 transition" style="text-transform: var(--btn-text-transform);">
+              {{ block.settings.button_label | escape }} 
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9333 13.8798C21.6599 13.6065 21.2167 13.6065 20.9433 13.8798C20.6699 14.1532 20.6699 14.5964 20.9433 14.8698L25.3733 19.2998H13.9383C13.5517 19.2998 13.2383 19.6132 13.2383 19.9998C13.2383 20.3864 13.5517 20.6998 13.9383 20.6998H25.3733L20.9433 25.1298C20.6699 25.4032 20.6699 25.8464 20.9433 26.1198C21.2167 26.3931 21.6599 26.3931 21.9333 26.1198L27.5583 20.4948C27.6254 20.4277 27.676 20.3503 27.7102 20.2678C27.7432 20.188 27.762 20.1008 27.7632 20.0094C27.7634 19.995 27.7632 19.9806 27.7625 19.9662C27.7545 19.7984 27.6864 19.633 27.5583 19.5048L21.9333 13.8798Z" fill="#F6F7F5"/>
+              </svg>
+            </button>
+          {% endif %}
+        </div>
+        <div class="relative flex flex-col md:items-start md:w-[30%]">
+          {% if block.settings.image != blank %}
+            <div class="max-h-72 w-auto relative z-0">
+            <img src="{{ block.settings.image | image_url: width: 300 }}" alt="{{ block.settings.title }}" class="max-h-72 w-auto" />
+             <div class="absolute top-[20%] left-[50%] z-10 w-[100px] h-[100px] flex items-center justify-center text-white font-bold text-sm text-center leading-tight pointer-events-none">
+            <svg width="100" height="100" viewBox="0 0 100 100" class="absolute inset-0" xmlns="http://www.w3.org/2000/svg">
+              <path d="M50 0L60.3528 11.363L75 6.69873L78.2843 21.7157L93.3013 25L88.637 39.6472L100 50L88.637 60.3528L93.3013 75L78.2843 78.2843L75 93.3013L60.3528 88.637L50 100L39.6472 88.637L25 93.3013L21.7157 78.2843L6.69873 75L11.363 60.3528L0 50L11.363 39.6472L6.69873 25L21.7157 21.7157L25 6.69873L39.6472 11.363L50 0Z" fill="#EA3468"/>
+            </svg>
+            <div class="relative z-10 flex flex-col items-center leading-none">
+              <span class="text-xs">Save</span>
+              <span class="text-lg font-extrabold">{{ block.settings.sale }}</span>
+            </div>
+          </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div> 
+<script>
+  function applyAllSlideGradients() {
+    $('.promo-cards-slider-{{ section.id }} .promo-banner').each(function () {
+      const gradient = $(this).data('gradient');
+      if (gradient) {
+        $(this).css({
+          background: gradient,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        });
+      }
+    });
+  }
+
+  function initPromoCardsSlider_{{ section.id | replace: '-', '_' }}() {
+    const slider = $('.promo-cards-slider-{{ section.id }}');
+    if (!slider.length) return;
+
+    if (slider.hasClass('slick-initialized')) {
+      slider.slick('unslick');
+    }
+
+    slider.slick({
+      slidesToShow: {{ section.settings.columns }},
+      slidesToScroll: 1,
+      autoplay: {{ section.settings.rotate_slides }},
+      arrows: {{ section.settings.show_arrows }},
+      dots: {{ section.settings.show_dots }},
+      swipe: true,
+      infinite: true,
+      adaptiveHeight: true,
+      prevArrow: '<button type="button" class="slick-prev custom-prev button icon-btn" aria-label="Previous slide"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="-0.5" y="0.5" width="39" height="39" rx="19.5" transform="matrix(-1 0 0 1 39 0)" fill="white"/><rect x="-0.5" y="0.5" width="39" height="39" rx="19.5" transform="matrix(-1 0 0 1 39 0)" stroke="#273025"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18.5667 13.8798C18.8401 13.6065 19.2833 13.6065 19.5567 13.8798C19.8301 14.1532 19.8301 14.5964 19.5567 14.8698L15.1267 19.2998H26.5617C26.9483 19.2998 27.2617 19.6132 27.2617 19.9998C27.2617 20.3864 26.9483 20.6998 26.5617 20.6998H15.1267L19.5567 25.1298C19.8301 25.4032 19.8301 25.8464 19.5567 26.1198C19.2833 26.3931 18.8401 26.3931 18.5667 26.1198L12.9417 20.4948C12.8746 20.4277 12.824 20.3503 12.7898 20.2678C12.7568 20.188 12.738 20.1008 12.7368 20.0094C12.7366 19.995 12.7368 19.9806 12.7375 19.9662C12.7455 19.7984 12.8136 19.633 12.9417 19.5048L18.5667 13.8798Z" fill="#273025"/></svg></button>',
+      nextArrow: '<button type="button" class="slick-next custom-next button icon-btn" aria-label="Next slide"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" fill="white"/><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" stroke="#273025"/><path d="M20.4434 13.8798C20.7167 13.6065 21.1602 13.6065 21.4336 13.8798L27.0586 19.5048L27.1484 19.6142C27.1654 19.6399 27.1772 19.6681 27.1904 19.6953C27.1962 19.7072 27.2039 19.7182 27.209 19.7304C27.2174 19.7507 27.2221 19.7721 27.2285 19.7929C27.2489 19.8586 27.2637 19.9276 27.2637 19.9999C27.2637 20.0589 27.252 20.1152 27.2383 20.1699C27.2304 20.2013 27.2242 20.2333 27.2119 20.2636C27.2112 20.2654 27.2097 20.2668 27.209 20.2685C27.2063 20.275 27.2021 20.2807 27.1992 20.2871C27.1833 20.3223 27.1656 20.3569 27.1436 20.3896C27.1182 20.4272 27.0905 20.4631 27.0586 20.4951L21.4336 26.1201C21.1603 26.3934 20.7167 26.3932 20.4434 26.1201C20.17 25.8467 20.17 25.4032 20.4434 25.1298L24.873 20.7001H13.4385C13.0519 20.7001 12.7384 20.3865 12.7383 19.9999C12.7383 19.6133 13.0519 19.2998 13.4385 19.2998H24.873L20.4434 14.8701C20.17 14.5967 20.17 14.1532 20.4434 13.8798Z" fill="#273025"/></svg></button>',
+      infinite: true,
+      responsive: [
+        {
+          breakpoint: 768,
+          settings: {
+            slidesToShow: 1
+          }
+        }
+      ]
+    });
+
+    slider.on('init afterChange', function () {
+      applyAllSlideGradients();
+    });
+
+    applyAllSlideGradients();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initPromoCardsSlider_{{ section.id | replace: '-', '_' }}();
+  });
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initPromoCardsSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initPromoCardsSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:deselect', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      const slider = $('.promo-cards-slider-{{ section.id }}');
+      if (slider.hasClass('slick-initialized')) {
+        slider.slick('unslick');
+      }
+    }
+  });
+  
+   document.addEventListener("DOMContentLoaded", function () {
+    {% if settings.layout_style == 'detached' %}
+      const slickList = document.querySelector('.promo-cards-slider-{{ section.id }} .slick-list');
+      if (slickList) {
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.classList.add('container', 'px-4', 'mx-auto');
+
+        slickList.parentNode.insertBefore(wrapperDiv, slickList);
+        wrapperDiv.appendChild(slickList);
+      }
+    {% endif %}
+  });
+</script>
+<style>
+  .promo-cards-slider-{{ section.id }}{
+    .slick-track{
+      display:flex;
+      {% if settings.layout_style == 'detached' %}
+      @media(min-width: 768px) {
+      left: -12px;
+      }
+      {% endif %}
+      align-items:stretch;
+      
+      .slick-slide{
+          height: auto;
+      }
+      .slick-slide >div:first-child{
+        height:100%;
+        .column{
+          height:100% !important;
+        }
+      }
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Promo Cards",
+  "settings": [
+    {
+      "type": "select",
+      "id": "display_type",
+      "label": "Display type",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "slider", "label": "Slider" }
+      ],
+      "default": "slider"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show dots (slider only)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show arrows (slider only)",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "rotate_slides",
+      "label": "t:sections.featuredArticles.settings.rotate_slide",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Number of columns",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 2
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Promo Card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Aloe vera enriched skincare routine"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle",
+          "default": "HOLIDAY GIFTS: 25% OFF"
+        },
+        {
+          "type": "text",
+          "id": "sale",
+          "label": "Sale Text",
+          "default": "20%"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Product Image"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button Label",
+          "default": "Buy Now"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button Link"
+        },
+        {
+          "type": "header",
+          "content": "Color"
+        },
+        {
+          "type": "color",
+          "id": "badge_color",
+          "label": "Badge Color",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "badge_bg_color",
+          "label": "Badge Background Color",
+          "default": "#EEF1EC33"
+        },
+        {
+          "type": "color_background",
+          "id": "background_gradient",
+          "label": "Card Gradiant Color",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "content_color",
+          "label": "Content Color",
+          "default": "#FFFFFF"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Promo Cards",
+      "blocks": [
+        {"type": "card"},
+        {"type": "card"}
+      ]
+    }
+  ]
+}
+{% endschema %}

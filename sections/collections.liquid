@@ -1,0 +1,161 @@
+<div class="collections-page{% if settings.layout_style == 'detached' %} container px-4 mx-auto{% endif %}">
+    <div class="flex flex-col items-center justify-center my-10 max-md:px-5">
+      <h2 class="mb-1 text-3xl font-bold !leading-normal">Collections</h2>
+      {% if section.settings.show_filter_count %}
+      <p class="text-gray-600">
+         <strong>{{ collections_count }}</strong> items
+      </p>
+      {% endif %}
+      <p class="text-base font-medium" style="color: var(--accent-color);">
+        Hand picked collections that cater to your skincare
+      </p>
+    </div>
+  
+    {% paginate collections by section.settings.collections_to_show %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-{{ section.settings.columns_desktop }} mb-4 md:mb-12{% if settings.layout_style == 'detached' %} card-space{% endif %}">
+            {% for collection in collections %}
+            <div class="collection-card group h-full border">
+                <a href="{{ collection.url }}" class=" flex flex-col h-full">
+                <div
+                    class="overflow-hidden"
+                    style="border-width: {{ settings.image_border_width }}px; border-style: {{ settings.image_border_style }}; border-radius: {{ settings.image_border_radius }}px;">
+                    {% if collection.image %}
+                    <img
+                        class="w-full h-[360px] object-top object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
+                        src="{{ collection.image | image_url: width: 600 }}"
+                        alt="{{ collection.title }}"/>
+                    {% else %}
+                    <img
+                        class="w-full h-[360px] object-top object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
+                        src="{{ collection.products.first.featured_image | image_url: width: 600 }}"
+                        alt="{{ collection.title }}"/>
+                    {% endif %}
+                </div>
+                <div class="theme flex-grow px-6 py-3 font-semibold text-center transition-all duration-500 ease-in-out flex items-center justify-center group-hover:justify-between group-hover:bg-secondary group-hover:text-black {% if section.settings.bg_color == 'dark' %}bg-primary text-white{% else %}text-black bg-white{% endif %}">
+                  {{ collection.title }}
+                    {% if section.settings.show_icon %}
+                     <div class="svg-wrapper m-3">
+                      <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path fill-rule="evenodd" clip-rule="evenodd" d="M9.43326 0.87983C9.15989 0.606463 8.71667 0.606463 8.44331 0.87983C8.16994 1.1532 8.16994 1.59641 8.44331 1.86978L12.8733 6.2998H1.43828C1.05168 6.2998 0.738281 6.61321 0.738281 6.9998C0.738281 7.3864 1.05168 7.6998 1.43828 7.6998H12.8733L8.44331 12.1298C8.16994 12.4032 8.16994 12.8464 8.44331 13.1198C8.71667 13.3931 9.15989 13.3931 9.43326 13.1198L15.0583 7.49478C15.1254 7.42767 15.176 7.35031 15.2102 7.26775C15.2432 7.188 15.262 7.10082 15.2632 7.0094C15.2634 6.99501 15.2632 6.98061 15.2625 6.96623C15.2545 6.79843 15.1864 6.63297 15.0583 6.50483L9.43326 0.87983Z" fill="currentColor"/>
+                      </svg>
+                     </div>
+                    {% endif %}
+                </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% if paginate.pages > 1 %}
+        <div class="mt-10 flex flex-wrap justify-center items-center gap-2" role="navigation" aria-label="Pagination">
+            {% if paginate.previous %}
+              <a href="{{ paginate.previous.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">
+                <span class="sr-only">Go to previous page</span>
+                {{- 'left-arrow.svg' | inline_asset_content -}}
+              </a>
+            {% else %}
+              <span class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center opacity-50 pointer-events-none">
+                <span class="sr-only">Go to previous page</span>
+                {{- 'left-arrow.svg' | inline_asset_content -}}
+              </span>
+            {% endif %}
+        
+            {% for part in paginate.parts %}
+              {% if part.is_link %}
+                <a aria-label="page-{{ part.title }}" href="{{ part.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">{{ part.title }}</a>
+              {% else %}
+                <span class="rounded-full bg-secondary w-12 h-12 flex items-center justify-center">{{ part.title }}</span>
+              {% endif %}
+            {% endfor %}
+        
+            {% if paginate.next %}
+              <a href="{{ paginate.next.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">
+                <span class="sr-only">Go to next page</span>
+                {{- 'right-arrow.svg' | inline_asset_content -}}
+              </a>
+            {% else %}
+              <span role="link" aria-disabled="true" tabindex="-1" href="{{ paginate.next.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center opacity-50 pointer-events-none">
+                <span class="sr-only">Go to next page</span>
+                {{- 'right-arrow.svg' | inline_asset_content -}}
+              </span>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% endpaginate %}
+</div>
+<style>
+   .collections-page .theme.dark {
+    background-color: black;
+    p {
+      color: white;
+    }
+  }
+  .collections-page .theme.light {
+    background-color: white;
+    p {
+      color: black;
+    }
+  }
+  .collections-page {
+    .card-space {
+      @media(max-width: 768px) {
+        gap: 16px;
+      }
+    }
+  }
+</style>
+{% schema %}
+{
+  "name": "Collections",
+  "settings": [
+    {
+        "type": "range",
+        "id": "columns_desktop",
+        "label": "Number of columns on desktop",
+        "min": 2,
+        "max": 6,
+        "step": 1,
+        "default": 4
+    },
+    {
+        "type": "range",
+        "id": "collections_to_show",
+        "label": "Number of Collections to show",
+        "min": 1,
+        "max": 40,
+        "step": 1,
+        "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filter_count",
+      "label": "Show collections count",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Collection Card"
+    },
+    {
+      "type": "select",
+      "id": "bg_color",
+      "label": "Collection Theme",
+      "options": [
+        { "value": "dark", "label": "Dark" },
+        { "value": "light", "label": "Light" }
+      ],
+      "default": "light"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show arrow icon",
+      "default": true
+    },
+  ],
+  "presets": [
+    {
+      "name": "Collections"
+    }
+  ]
+}
+{% endschema %}

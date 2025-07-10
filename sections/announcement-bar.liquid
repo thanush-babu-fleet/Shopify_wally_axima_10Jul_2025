@@ -1,0 +1,342 @@
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "settings": [
+    {
+      "type": "text",
+      "id": "announcement_text",
+      "label": "Announcement text"
+    },
+    {
+      "type": "image_picker",
+      "id": "announcement_icon",
+      "label": "Icon for Announcement text"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation",
+      "label": "Enable Navigation Link"
+    },
+    {
+      "type": "url",
+      "id": "navigation_url",
+      "label": "Navigation Link"
+    },
+    {
+      "type": "header",
+      "content": "Contact Form"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_support",
+      "label": "Enable Contact Form"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contact_image",
+      "label": "Show contact image",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "contact_image",
+      "label": "Contact form image"
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .announcement-text{
+    font-size: 14px;
+  }
+  .announcement-links a {
+    color: {{settings.announcement_text}};
+    margin-left: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .announcement-links a:hover {
+    text-decoration: underline;
+  }
+  .support-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+  }
+  .support-modal.hidden {
+    display: none;
+  }
+  .support-modal-content {
+    background: #fff;
+    width: 58%;
+    max-height: 558px;
+    overflow: auto;
+    position: relative;
+    text-align: left;
+    @media(max-width: 768px){
+      width: 92%;
+    }
+    .list-social__item .svg-wrapper svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  .support-modal-content h2 {
+    margin: 0 0 0.5rem;
+  }
+  .support-modal-content input,
+  .support-modal-content textarea {
+    width: 100%;
+    border: none;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: #eee;
+    font-size: 0.95rem;
+    resize: none;
+  }
+
+  .close-btn {
+    border-width: 0px;
+    border-radius: 100%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+  }
+  .contact-form input::placeholder,
+  .contact-form textarea::placeholder {
+    color: black;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap;
+  }
+</style>
+
+{%- if section.settings.announcement_text != blank -%}
+  <div class="py-2.5 flex justify-between items-center" style="background: {{ settings.announcement_bg }}; color: {{ settings.announcement_text }}">
+    <div class="container px-4 mx-auto">
+    <div class="gap-4 w-full flex justify-center md:justify-between items-center">
+      <div class="flex items-center">
+        {%- if section.settings.announcement_icon != blank -%}
+          <span class="pr-2">
+            {{
+              section.settings.announcement_icon
+              | image_url: width: 16
+              | image_tag: class: 'icon', alt: 'Announcement icon'
+            }}
+          </span>
+        {%- endif -%}
+
+        <span class="announcement-text font-medium capitalize">
+          {{ section.settings.announcement_text }}
+        </span>
+      </div>
+
+      <div class="announcement-links hidden md:block">
+        {%- if section.settings.show_navigation and section.settings.navigation_url != blank -%}
+          <a class="announcement-text font-medium" href="{{ section.settings.navigation_url }}">{{ 'global.announcement_bar.navigation_label' | t }}</a>
+        {%- endif -%}
+
+        {%- if section.settings.show_support -%}
+          <span>
+            <svg class="ml-6 inline-block" width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.99967 14.8615C11.6816 14.8615 14.6663 11.8768 14.6663 8.19487C14.6663 4.51297 11.6816 1.5282 7.99967 1.5282C4.31778 1.5282 1.33301 4.51297 1.33301 8.19487C1.33301 11.8768 4.31778 14.8615 7.99967 14.8615Z" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 5.5282V8.19486" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M8 10.8615H8.00615" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            </svg>
+          </span>
+          <a class="announcement-text font-medium" href="javascript:void(0);" onclick="toggleSupportModal()">{{ 'global.announcement_bar.contact_us_label' | t }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+  </div>
+{%- endif -%}
+
+<div id="support-modal" class="support-modal flex items-center justify-center hidden relative">
+  <div class="support-modal-content flex{% if settings.layout_style == 'detached' %} p-6{% endif %}{% if section.settings.show_contact_image and section.settings.contact_image != blank %} flex-col md:flex-row{% endif %}">
+    {% if section.settings.show_contact_image and section.settings.contact_image != blank %}
+      <div class="flex md:w-1/2 items-center justify-center max-md:h-56">
+        <img src="{{ section.settings.contact_image | image_url: width: 400 }}" alt="Contact" class="object-cover object-top w-full h-full" aria-hidden="true">
+      </div>
+    {% endif %}
+    <div class="flex flex-col{% if settings.layout_style == 'attached' %} m-6 {% endif %} md:p-6{% if section.settings.show_contact_image and section.settings.contact_image != blank %} md:w-1/2{% endif %}">
+      <div class="flex justify-between pb-1.5 max-md:pt-6">
+        <h1 class="contact_heading font-bold text-2xl !leading-normal">{{ 'global.contact_us.title' | t }}</h1>
+        <button class="absolute top-4 right-4 close-btn flex items-center justify-end" aria-label="CLose Contact us form" onclick="toggleSupportModal()">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="20" fill="black"/>
+          <path d="M25.1308 13.8798C25.4042 13.6065 25.8477 13.6065 26.121 13.8798C26.3942 14.1532 26.3943 14.5968 26.121 14.8701L20.9912 19.9999L26.121 25.1298C26.3942 25.4032 26.3943 25.8468 26.121 26.1201C25.8477 26.3934 25.4042 26.3932 25.1308 26.1201L20.0009 20.9902L14.871 26.1201C14.5977 26.3934 14.1542 26.3932 13.8808 26.1201C13.6074 25.8467 13.6074 25.4032 13.8808 25.1298L19.0107 19.9999L13.8808 14.8701C13.6074 14.5967 13.6074 14.1532 13.8808 13.8798C14.1542 13.6065 14.5977 13.6065 14.871 13.8798L20.0009 19.0097L25.1308 13.8798Z" fill="white"/>
+          </svg>
+        </button>
+      </div>
+      <p class="font-medium announcement-text">{{ 'global.contact_us.description' | t }}</p>
+      {% form 'contact', id: 'contact_form', class: 'contact-form pt-6' %}
+        <label for="contact_email" class="visually-hidden">Email Address</label>
+        <input type="email" id="contact_email" name="contact[email]" placeholder="john@gmail.com" required>
+        
+        <label for="contact_body" class="visually-hidden">Body Message</label>
+        <textarea name="contact[body]" id="contact_body" placeholder="Type your message here..." rows="5" required></textarea>
+      
+        <button type="submit" class=" primary-btn py-1 flex items-center justify-center w-full">
+          <span class="text-base font-semibold">{{ 'global.contact_us.buttonLabel' | t }}</span>
+          <span class="send-icon svg-wrapper" aria-hidden="true">
+            {{ 'readMore-arrow.svg' | inline_asset_content }}
+          </span>
+        </button>
+        {% if form.posted_successfully? %}
+          <div id="form-success-msg" style="color: green; margin-top: 1rem;">
+            {{ 'global.contact_us.subscribe_success' | t }}
+          </div>
+        {% endif %}
+      {% endform %}
+      <div class="mt-4">
+        <ul class="social links py-4 flex flex-row justify-center items-center gap-8">
+            {%- if settings.linkedin != blank -%}
+              <li class="list-social__item">
+                <a href="{{ settings.linkedin }}" class="link list-social__link">
+                  <span class="svg-wrapper w-4 h-4">
+                    {{- 'product-linkedin.svg' | inline_asset_content -}}
+                  </span>
+                  <span class="visually-hidden">{{ 'global.social.links.linkedin' | t }}</span>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if settings.instagram != blank -%}
+              <li class="list-social__item">
+                <a href="{{ settings.instagram }}" class="link list-social__link">
+                  <span class="svg-wrapper w-4 h-4">
+                    {{- 'product-insta.svg' | inline_asset_content -}}
+                  </span>
+                  <span class="visually-hidden">{{ 'global.social.links.instagram' | t }}</span>
+                </a>
+              </li>
+            {%- endif -%}
+            {%- if settings.facebook != blank -%}
+              <li class="list-social__item">
+                <a href="{{ settings.facebook }}" class="link list-social__link">
+                  <span class="svg-wrapper w-4 h-4">
+                     {{- 'product-facebook.svg' | inline_asset_content -}}
+                  </span>
+                  <span class="visually-hidden">{{ 'global.social.links.facebook' | t }}</span>
+                </a>
+              </li>
+            {%- endif -%}
+             {%- if settings.x != blank -%}
+              <li class="list-social__item">
+                <a href="{{ settings.x }}" class="link list-social__link">
+                  <span class="svg-wrapper w-4 h-4">
+                    {{- 'product-twitter.svg' | inline_asset_content -}}
+                  </span>
+                  <span class="visually-hidden">{{ 'global.social.links.x' | t }}</span>
+                </a>
+              </li>
+            {%- endif -%}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSupportModal(forceClose = false) {
+    const modal = document.getElementById('support-modal');
+    const modalContent = modal.querySelector('.support-modal-content');
+    if (forceClose || !modal.classList.contains('hidden')) {
+      modal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+      if (modalContent && modalContent._removeTrap) modalContent._removeTrap();
+    } else {
+      const contactForm = document.getElementById('contact_form');
+
+      if (contactForm) contactForm.reset();
+      modal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+      if (modalContent) trapFocusInModal(modalContent);
+    }
+  }
+
+  function trapFocusInModal(modal) {
+    function getFocusableEls() {
+      return modal.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+    }
+    function handleTrap(e) {
+      if (e.key === 'Tab') {
+        const focusableEls = Array.from(getFocusableEls());
+        if (!focusableEls.length) return;
+        const firstInput = modal.querySelector('input, textarea, select');
+        const firstFocusableEl = firstInput || focusableEls[0];
+        const lastFocusableEl = focusableEls[focusableEls.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        }
+      }
+    }
+    modal.addEventListener('keydown', handleTrap);
+    modal._removeTrap = () => modal.removeEventListener('keydown', handleTrap);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const contactPosted = urlParams.get('contact_posted');
+
+    if (contactPosted === 'true') {
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 3000);
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const contactForm = document.getElementById('contact_form');
+    const modal = document.getElementById('contactModal');
+    const successMsg = document.getElementById('form-success-msg');
+
+    if (contactForm) {
+      contactForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(contactForm);
+
+        fetch('/contact', {
+          method: 'POST',
+          body: formData,
+        }).then((response) => {
+          if (response.ok) {
+            contactForm.style.display = 'none';
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+              successMsg.style.display = 'none';
+              contactForm.reset();
+              contactForm.style.display = 'block';
+            }, 3000);
+          }
+        }).catch((error) => {
+          console.error("Form submit error:", error);
+        });
+      });
+    }
+  });
+</script>

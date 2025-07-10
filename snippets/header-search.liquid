@@ -1,0 +1,177 @@
+{{ 'predictive-search.css' | asset_url | stylesheet_tag }}
+{{ 'predictive-search.js' | asset_url | script_tag }}
+
+<script>
+  window.badgeTextColor = '{{ settings.badge_text_color | default: "#2D6105" }}';
+  window.badgeBackgroundColor = '{{ settings.sale_bg_color | default: "#6CF6001A" }}';
+
+  window.popularCollectionsEnabled = {{ settings.show_popular_categories | json }};
+  window.popularCollectionsList = [];
+
+  {% if settings.show_popular_categories and settings.select_products_to_show != blank and linklists[settings.select_products_to_show].links.size > 0 %}
+    window.popularCollectionsList = [
+      {% for link in linklists[settings.select_products_to_show].links %}
+        { title: {{ link.title | json }}, url: {{ link.url | json }} }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ];
+  {% endif %}
+</script>
+
+<div id="searchBox" role="dialog" aria-modal="true"
+  class="fixed top-0 py-4 md:py-10 left-1/2 transform -translate-x-1/2 bg-white z-50{% if settings.layout_style == 'detached' %} md:my-14 w-full md:w-3/4 h-full md:h-[calc(100%-120px)]{% else %} mb-10 w-full h-full md:h-[calc(100%-40px)]{% endif %} overflow-auto hidden"
+  data-predictive-search>
+      <div class="flex justify-between md:hidden mb-4{% if settings.layout_style == 'detached' %} px-4{% endif %}">
+         <h1 class="text-3xl font-bold !leading-normal">Search</h1>
+         <button onclick="toggleSearchBox(false)" aria-label="Clear Search"
+          class="close-button flex justify-center items-center text-black border-none cursor-pointer text-2xl">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="24" fill="black"/>
+            <path d="M29.1308 17.8798C29.4042 17.6065 29.8477 17.6065 30.121 17.8798C30.3942 18.1532 30.3943 18.5968 30.121 18.8701L24.9912 23.9999L30.121 29.1298C30.3942 29.4032 30.3943 29.8468 30.121 30.1201C29.8477 30.3934 29.4042 30.3932 29.1308 30.1201L24.0009 24.9902L18.871 30.1201C18.5977 30.3934 18.1542 30.3932 17.8808 30.1201C17.6074 29.8467 17.6074 29.4032 17.8808 29.1298L23.0107 23.9999L17.8808 18.8701C17.6074 18.5967 17.6074 18.1532 17.8808 17.8798C18.1542 17.6065 18.5977 17.6065 18.871 17.8798L24.0009 23.0097L29.1308 17.8798Z" fill="white"/>
+            </svg>
+          </button>
+      </div>
+  <!-- Search bar and close button (moved inside modal) -->
+  <div class="search-container flex justify-between items-center gap-5 w-full mb-4 md:mb-6{% if settings.layout_style == 'detached' %} px-4 md:px-20{% else %} md:px-11{% endif %}">
+    <div class="search-bar flex items-center bg-[#F1F3F0] px-2 py-3 w-full">
+      <p class="text-black m-2.5" aria-hidden="true">
+        {{ 'search-icon.svg' | inline_asset_content }}
+      </p>
+      <input id="searchInputMobile" type="text" placeholder="{{ 'global.search.placeholder-search' | t }}"
+        class="search-input flex-1 bg-transparent outline-none border-none text-gray1 text-sm font-normal ml-1" 
+        aria-label="Search Box" aria-controls="predictive-search-results" aria-autocomplete="list" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false" aria-activedescendant  />
+    </div>
+    <button onclick="toggleSearchBox(false)" aria-label="Clear Search"
+      class="close-button flex justify-center items-center text-black border-none cursor-pointer text-2xl max-md:hidden">
+      {{ 'close-icon.svg' | inline_asset_content }}
+    </button>
+  </div>
+
+  <!-- The rest of your search results UI -->
+  <div class="searchContainer overflow-y-auto scrollbar-hide">
+    <div id="searchLoading" class=" hidden flex justify-center items-center min-h-[200px]">
+        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            class="spinner w-8 h-8 text-gray-400 animate-spin" viewBox="0 0 66 66">
+            <circle stroke-width="6" cx="33" cy="33" r="30" fill="none" class="path" stroke="currentColor" />
+        </svg>
+    </div>
+    
+    <div id="categoriesSection" class="categories font-medium mb-6{% if settings.layout_style == 'detached' %} px-4 md:px-20{% endif %}" >
+        <h1 class="font-medium md:font-bold text-center text-black text-xl md:text-2xl py-2.5">{{ 'global.search.categories' | t }}</h1>
+        <ul id="categoryList" class="mt-2.5 md:mt-6"></ul>
+    </div>
+
+    <div id="recommendedSection" class="recommended{% if settings.layout_style == 'detached' %} px-4 md:px-20{% endif %}">
+        <h1 class="font-medium md:font-bold text-center text-black text-xl md:text-2xl py-2.5">{{ 'global.search.recommended' | t }}</h1>
+        <div id="recommendedItems" class="recommended-items mt-4"></div>
+    </div>
+
+    <div id="noResults" class="text-center text-gray2 text-sm hidden">{{ 'global.search.no_results' | t }}</div>
+
+    <div class="predictive-search-status sr-only" role="status" aria-hidden="true"></div>
+  </div>
+</div>
+
+<div id="searchOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('searchInputMobile');
+    if (searchInput) {
+      searchInput.focus();
+    }
+  });
+
+  // Accessibility: Trap focus within the search modal
+  function trapFocusInModal(modal) {
+    function getFocusableEls() {
+      return modal.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+    }
+    function handleTrap(e) {
+      if (e.key === 'Tab') {
+        const focusableEls = Array.from(getFocusableEls());
+        if (!focusableEls.length) return;
+        // Always use the search input as the first focusable element
+        const searchInput = modal.querySelector('#searchInputMobile');
+        const firstFocusableEl = searchInput || focusableEls[0];
+        const lastFocusableEl = focusableEls[focusableEls.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        }
+      }
+    }
+    modal.addEventListener('keydown', handleTrap);
+    modal._removeTrap = () => modal.removeEventListener('keydown', handleTrap);
+  }
+
+  function toggleSearchBox(open) {
+    const searchInput = document.getElementById('searchInputMobile');
+    const searchBox = document.getElementById('searchBox');
+    const overlay = document.getElementById('searchOverlay');
+    const wrapper = document.getElementById('headerSearchContainer');
+    const mainNav = document.querySelector(".main-nav");
+    const mainContent = document.querySelector('main');
+
+    if (open) { 
+      searchBox.style.display = 'block';
+      wrapper?.classList.remove("hidden");
+      overlay.style.display = 'block';
+      document.body.classList.add('overflow-hidden');
+      trapFocusInModal(searchBox);
+      if (mainContent) mainContent.setAttribute('aria-hidden', 'true');
+      setTimeout(() => {
+        searchInput.focus();
+        // Trigger predictive search initialization
+        if (window.predictiveSearchMobileInstance) {
+          window.predictiveSearchMobileInstance.onFocus();
+        }
+      }, 50);
+    } else {
+      wrapper?.classList.add("hidden");
+      searchBox.style.display = 'none';
+      mainNav?.classList.remove("hidden");
+      overlay.style.display = 'none';
+      document.body.classList.remove('overflow-hidden');
+      searchInput.blur();
+      if (mainContent) mainContent.removeAttribute('aria-hidden');
+      if (searchBox._removeTrap) searchBox._removeTrap();
+      // Clear the search input and reset predictive search state
+      if (searchInput) {
+        searchInput.value = '';
+      }
+      if (window.predictiveSearchMobileInstance) {
+        window.predictiveSearchMobileInstance.resetState();
+      }
+    }
+  }
+
+  // Add click outside functionality
+  document.addEventListener('click', function(event) {
+    const searchBox = document.getElementById('searchBox');
+    const searchInput = document.getElementById('searchInputMobile');
+    const searchInputDesktop = document.getElementById('searchInput');
+    const triggerHeaderSearch = document.getElementById('triggerHeaderSearch');
+    const triggerHeaderSearchMobile = document.getElementById('triggerHeaderSearchMobile');
+    
+    // Check if search box is currently visible
+    if (searchBox && searchBox.style.display === 'block') {
+      // Check if click is outside the search box and not on the trigger buttons
+      const isClickInsideSearchBox = searchBox.contains(event.target);
+      const isClickOnTrigger = triggerHeaderSearch?.contains(event.target) || triggerHeaderSearchMobile?.contains(event.target);
+      const isClickOnSearchInput = searchInput?.contains(event.target) || searchInputDesktop?.contains(event.target);
+      
+      if (!isClickInsideSearchBox && !isClickOnTrigger && !isClickOnSearchInput) {
+        toggleSearchBox(false);
+      }
+    }
+  });
+</script>

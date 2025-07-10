@@ -1,0 +1,82 @@
+{% for link in linklist %}
+{% if link.links != blank %}
+    <div class="relative dropdownnav">
+        <button class="main-menu dropdown-toggle flex items-center gap-2">
+          {{ link.title }}
+          <span class="svg-wrapper up-arrow hidden">
+            {{- 'up_arrow.svg' | inline_asset_content -}}
+          </span>
+          <span class="svg-wrapper down-arrow">
+            {{- 'down_arrow.svg' | inline_asset_content -}}
+          </span>
+        </button>
+        <div class="absolute left-0 bg-white shadow-lg hidden w-56 rounded-md py-2 dropdown-menu z-10">
+          {% for sub_link in link.links %}
+            <div class="relative">
+              <button class="submenu-toggle flex justify-between items-center w-full px-4 py-2">
+                <a class="w-full text-left" href="{{ sub_link.url }}" aria-label="{{ sub_link.title }}">{{ sub_link.title }}</a>
+                {% if sub_link.links != blank %}
+                    <span class="svg-wrapper down-arrow -rotate-90">
+                        {{- 'down_arrow.svg' | inline_asset_content -}}
+                    </span>
+                    <span class="svg-wrapper up-arrow hidden -rotate-90">
+                        {{- 'up_arrow.svg' | inline_asset_content -}}
+                    </span>
+                {% endif %}
+              </button>
+
+              {% if sub_link.links != blank %}
+                <div class="absolute left-full top-0 hidden bg-white shadow-lg w-56 rounded-md py-2 submenu">
+                  {% for sub_sub_link in sub_link.links %}
+                    <a href="{{ sub_sub_link.url }}" class="block px-4 py-2" aria-label="{{ sub_sub_link.title }}">
+                      {{ sub_sub_link.title }}
+                    </a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+    </div>
+{% else %}
+  <a href="{{ link.url }}" class="main-menu" aria-label="{{ link.title }}">{{ link.title }}</a>
+{% endif %}
+{% endfor %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    $(document).on("click", ".dropdown-toggle", function (e) {
+      e.preventDefault();
+      const $this = $(this);
+      const $dropdownMenu = $this.closest(".dropdownnav").find(".dropdown-menu").first();
+      $(".dropdown-menu").not($dropdownMenu).addClass("hidden");
+      $(".dropdown-toggle").not($this).removeClass("active");
+      $dropdownMenu.toggleClass("hidden");
+      $this.toggleClass("active");
+    });
+    $(document).on("click", ".submenu-toggle", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const $this = $(this);
+      const $submenu = $this.closest("div.relative").find(".submenu").first();
+      $this.closest(".dropdown-menu").find(".submenu").not($submenu).addClass("hidden");
+      $submenu.toggleClass("hidden");
+    });
+    $(document).on("click", function (e) {
+      if (!$(e.target).closest(".dropdownnav").length) {
+        $(".dropdown-menu, .submenu").addClass("hidden");
+        $(".dropdown-toggle").removeClass("active");
+      }
+    });
+    $(".dropdownnav").on("focusout", function () {
+      const $this = $(this);
+      setTimeout(() => {
+        if (!$this.has(document.activeElement).length) {
+          $this.find(".dropdown-menu, .submenu").addClass("hidden");
+          $this.find(".dropdown-toggle").removeClass("active");
+        }
+      }, 10);
+    });
+  });
+</script>
+

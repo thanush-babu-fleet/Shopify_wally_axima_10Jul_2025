@@ -1,0 +1,164 @@
+{%- style -%}
+  .countdown-bar {
+    {% if section.settings.background_gradient != blank %}
+      background: {{ section.settings.background_gradient }};
+    {% else %}
+      background-color: {{ section.settings.background }};
+    {% endif %}
+  }
+{%- endstyle -%}
+
+<div class="{% if settings.layout_style == 'detached' %}container px-4 mx-auto{% endif %}">
+  <div class="countdown-bar px-[7%] py-8 md:py-16">
+    <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 lg:gap-20 w-full">
+      <!-- Countdown Timer -->
+      <div class="flex gap-2 md:w-1/2">
+        <div class="bg-[#FFFFFF3D] flex flex-col items-center justify-center lg:p-6 max-lg:px-3 max-lg:py-2 min-w-[72px] lg:min-w-[120px]">
+          <span id="countdown-days-{{ section.id }}" class="text-3xl lg:text-[40px] font-semibold leading-normal">00</span>
+          <span class="text-base lg:text-2xl text-black !leading-normal">Days</span>
+        </div>
+        <div class="bg-[#FFFFFF3D] flex flex-col items-center justify-center lg:p-6 max-lg:px-3 max-lg:py-2 min-w-[72px] lg:min-w-[120px]">
+          <span id="countdown-hours-{{ section.id }}" class="text-3xl lg:text-[40px] font-semibold leading-normal">00</span>
+          <span class="text-base lg:text-2xl text-black !leading-normal">Hours</span>
+        </div>
+        <div class="bg-[#FFFFFF3D] flex flex-col items-center justify-center lg:p-6 max-lg:px-3 max-lg:py-2 min-w-[72px] lg:min-w-[120px]">
+          <span id="countdown-minutes-{{ section.id }}" class="text-3xl lg:text-[40px] font-semibold leading-normal">00</span>
+          <span class="text-base lg:text-2xl text-black !leading-normal">Mins</span>
+        </div>
+        <div class="bg-[#FFFFFF3D] flex flex-col items-center justify-center lg:p-6 max-lg:px-3 max-lg:py-2 min-w-[72px] lg:min-w-[120px]">
+          <span id="countdown-seconds-{{ section.id }}" class="text-3xl lg:text-[40px] font-semibold leading-normal">00</span>
+          <span class="text-base lg:text-2xl text-black !leading-normal">Secs</span>
+        </div>
+      </div>
+      <!-- Promo/Content Side -->
+      <div class="flex flex-col items-center gap-4 md:items-start md:w-1/2">
+        {%- if section.settings.promocode != blank -%}
+          <div class="bg-[#EEF1EC] text-xs font-medium px-2.5 py-1.5 w-fit tracking-wider !leading-normal">
+            {{ section.settings.promocode }}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.description != blank -%}
+          <h2 class="heading text-2xl font-medium">{{ section.settings.description }}</h2>
+        {%- endif -%}
+        {% if section.settings.show_button %}
+          {% render 'button',
+          button_text: section.settings.button_label,
+          button_url: section.settings.button_url,
+          button_type: section.settings.button_type,
+          button_size: small,
+        %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var countdownEndDate = new Date("{{ section.settings.countdown_date }} {{ section.settings.countdown_time }}").getTime();
+
+  var countdownInterval = setInterval(function() {
+    var now = new Date().getTime();
+    var timeLeft = countdownEndDate - now;
+
+    var days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    var hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+    document.getElementById("countdown-days-{{ section.id }}").innerText = String(days).padStart(2, '0');
+    document.getElementById("countdown-hours-{{ section.id }}").innerText = String(hours).padStart(2, '0');
+    document.getElementById("countdown-minutes-{{ section.id }}").innerText = String(minutes).padStart(2, '0');
+    document.getElementById("countdown-seconds-{{ section.id }}").innerText = String(seconds).padStart(2, '0');
+
+    if (timeLeft < 0) {
+      clearInterval(countdownInterval);
+      document.querySelector(".countdown-bar").innerHTML = "<div class='container mx-auto px-4 py-8 text-center'><h2 class='text-2xl font-bold'>The sale has ended!</h2></div>";
+    }
+  }, 1000);
+</script>
+
+{% schema %}
+{
+  "name": "Countdown Bar",
+  "presets": [
+    {
+      "name": "Countdown Bar"
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "promocode",
+      "label": "Headline",
+      "default": "SALE: FLAT 50% OFF"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "Hurry up! Grab the best deals before it runs out"
+    },
+    {
+      "type": "text",
+      "id": "countdown_date",
+      "label": "Countdown End Date (YYYY-MM-DD)",
+      "default": "2025-12-31"
+    },
+    {
+      "type": "text",
+      "id": "countdown_time",
+      "label": "Countdown End Time (HH:MM:SS)",
+      "default": "23:59:59"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "t:sections.collection-grid.settings.show_button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.offerBanner.btn_label",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "t:sections.offerBanner.button_link"
+    },
+    {
+      "type": "select",
+      "id": "button_type",
+      "label": "t:sections.offerBanner.button_type",
+      "options": [
+        { "value": "primary", "label": "t:sections.offerBanner.primary" },
+        { "value": "secondary", "label": "t:sections.offerBanner.secondary" },
+        { "value": "tertiary", "label": "t:sections.offerBanner.tertiary" }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color_background",
+      "id": "background_gradient",
+      "label": "Background Gradiant Color",
+      "default": "#ffffff",
+      "info": "If gradient is used,then it overrides normal background color"
+    }
+  ]
+}
+{% endschema %}

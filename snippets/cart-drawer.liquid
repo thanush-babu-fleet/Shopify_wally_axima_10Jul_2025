@@ -1,0 +1,227 @@
+{{ 'cart-drawer.css' | asset_url | stylesheet_tag }}
+
+<div id="cartOverlay" class="cartoverlay hidden"></div>
+<div id="cartDrawer"
+    class="cart-main-drawer mb-4 hidden bg-white fixed right-4 w-11/12 md:w-[360px] z-10">
+    <div id="cartItems" class="cart-drawer overflow-y-auto flex flex-col justify-between">
+        <div class="cart-area">
+            <div class="cart-header bg-white pt-4 px-4{% if settings.layout_style == 'attached' %} border-b {% endif %}">
+                <div class="cart-title flex items-center">
+                    <span class="shopping-cart-icon svg-wrapper py-2.5 px-3">
+                        {{ 'cart-icon.svg' | inline_asset_content }}
+                    </span>
+                    <h1 class="heading text-xl font-semibold !leading-normal">{{ 'global.cart.title' | t }}</h1>
+                </div>
+                <button id="closeCartDrawer" class="cart-close flex items-center justify-center"
+                    aria-label="Close Cart Drawer">
+                    {{ 'close-icon.svg' | inline_asset_content }}
+                </button>
+            </div>
+
+            <div class="cart-body{% if settings.layout_style == 'detached' %} px-4{% endif %}">
+                <div id="cartDrawerItems"
+                    class="flex flex-col {% if settings.layout_style == 'detached' %}gap-4{% endif %}{% unless cart.item_count > 0 %}hidden{% endunless %}">
+                    {% render 'cart-drawer-items' %}
+                </div>
+
+                <div id="emptyCartUi"
+                    class="empty-cart-ui text-center flex flex-col items-center justify-center {% if cart.item_count > 0 %}hidden{% endif %}">
+                    <span class="empty-icon svg-wrapper">
+                        {{ 'cart-empty-icon.svg' | inline_asset_content }}
+                    </span>
+                    <p class="text-xl text-primary font-bold">
+                        {{ 'global.cart.empty' | t }}
+                    </p>
+                    <p class="mt-2 text-sm" style="color: #8C9289">{{ 'global.cart.emptydes' | t }}</p>
+                    {% if settings.display_links_when_empty and settings.link_list != blank %}
+                    <ul class="mt-6 flex flex-col gap-2">
+                        {% for link in linklists[settings.link_list].links %}
+                        <li>
+                            <a href="{{ link.url }}" class="text-sm underline hover:text-black">
+                                {{ link.title }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    <a href="/collections/all" id="buyNowButton">
+                        <button class="my-6 secondary-btn btn-small flex flex-row font-semibold items-center justify-center gap-3">
+                            {{ 'global.cart.buynow' | t | default: 'Buy Now'}}
+                            <svg width="16" height="14" viewBox="0 0 16 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M9.22915 1.13862C8.95579 0.865252 8.51257 0.865252 8.2392 1.13862C7.96584 1.41199 7.96584 1.8552 8.2392 2.12857L12.6692 6.55859H1.23418C0.84758 6.55859 0.53418 6.87199 0.53418 7.25859C0.53418 7.64519 0.84758 7.95859 1.23418 7.95859H12.6692L8.2392 12.3886C7.96584 12.662 7.96584 13.1052 8.2392 13.3786C8.51257 13.6519 8.95579 13.6519 9.22915 13.3786L14.8542 7.75357C14.9213 7.68645 14.9719 7.6091 15.0061 7.52654C15.0391 7.44679 15.0579 7.35961 15.0591 7.26819C15.0593 7.2538 15.0591 7.2394 15.0584 7.22501C15.0504 7.05722 14.9823 6.89176 14.8542 6.76362L9.22915 1.13862Z"
+                                    fill="currentColor" />
+                            </svg>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="cart-bottom{% if settings.layout_style == 'detached' %} pb-4 px-4{% endif %}">
+            <div id="cart-drawer-note-wrapper" class="cart-note{% if settings.layout_style == 'attached' %} px-4{% endif %} {% unless cart.item_count > 0 %}hidden{% endunless %}">
+                {% if settings.enable_order_notes %}
+                <div class="{% if settings.layout_style == 'detached' %}mt-8 {% else %}mt-2 {% endif %}">
+                    <h2 class="font-semibold text-base mb-4">{{ 'global.cart.add_instructions' | t }}</h2>
+                    <form action="/cart" method="post" id="cart-drawer-note" class="w-[95%] ml-1.5">
+                        <textarea name="note" class="w-full p-4 text-sm" aria-label="Order Notes" rows="3"
+                            placeholder="{{ 'global.cart.notes_placeholder' | t }}"
+                            style="background-color:#F6F7F5">{{ cart.note }}</textarea>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if settings.enable_terms_conditions %}
+                <div class="mt-4 ml-1.5 w-[95%] mb-2 flex items-center gap-2 {% unless cart.item_count > 0 %}hidden{% endunless %}"
+                    id="termsCheckboxWrapper">
+                    <input id="cartDrawerTermsCheckbox" type="checkbox" class="w-4 h-4" />
+                    <label for="cartDrawerTermsCheckbox" class="text-sm text-black leading-5">
+                        {{ settings.checkbox_label | default: "I agree to the terms and conditions" }}
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+
+            <div id="cartActions" class="cart-actions {% unless cart.item_count > 0 %}hidden{% endunless %}">
+                <form id="checkoutForm" method="post" action="/checkout" style="margin-top: 8px;">
+                    <button type="submit" class="cart-button checkout py-1 primary-btn w-full font-urbanist">
+                        <span class="text-base font-semibold">{{ 'global.cart.checkout' | t }}</span>
+                        <span class="right-arrow svg-wrapper">
+                            {{ 'readMore-arrow.svg' | inline_asset_content }}
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  function initTermsCheckbox() {
+    const checkbox = document.getElementById('cartDrawerTermsCheckbox');
+    const checkoutButton = document.querySelector('#cartActions .checkout');
+    if (checkbox && checkoutButton) {
+      checkoutButton.disabled = !checkbox.checked;
+      checkoutButton.classList.toggle('opacity-50', !checkbox.checked);
+      checkoutButton.classList.toggle('cursor-not-allowed', !checkbox.checked);
+      checkbox.addEventListener('change', function () {
+        checkoutButton.disabled = !this.checked;
+        checkoutButton.classList.toggle('opacity-50', !this.checked);
+        checkoutButton.classList.toggle('cursor-not-allowed', !this.checked);
+      });
+    }
+  }
+
+  function updateCartDrawerTop() {
+    const announcementBar = document.getElementById('shopify-section-announcement-bar');
+    const header = document.getElementById('shopify-section-header');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartItems = document.getElementById('cartItems');
+    if (!cartDrawer || !cartItems || !header) return;
+
+    const announcementHeight = announcementBar?.offsetHeight || 0;
+    const headerHeight = header.offsetHeight;
+    const announcementVisible = announcementBar?.getBoundingClientRect().bottom > 0;
+    const topOffset = (announcementVisible ? announcementHeight : 0) + headerHeight + 16;
+
+    cartDrawer.style.top = `${topOffset}px`;
+    const drawerHeight = window.innerHeight - topOffset - 16;
+    cartDrawer.style.height = `${drawerHeight}px`;
+
+    const cartContentHeight = drawerHeight;
+    cartItems.style.height = `${cartContentHeight}px`;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    updateCartDrawerTop();
+    initTermsCheckbox();
+  });
+
+  window.addEventListener('load', updateCartDrawerTop);
+  window.addEventListener('resize', updateCartDrawerTop);
+  window.addEventListener('scroll', updateCartDrawerTop);
+</script>
+                              
+<script>
+  // Accessibility: Trap focus within the cart drawer modal
+  function trapFocusInModal(modal) {
+    function getFocusableEls() {
+      return modal.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+    }
+    function handleTrap(e) {
+      if (e.key === 'Tab') {
+        const focusableEls = Array.from(getFocusableEls());
+        if (!focusableEls.length) return;
+        const firstFocusableEl = focusableEls[0];
+        const lastFocusableEl = focusableEls[focusableEls.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            lastFocusableEl.focus();
+          }
+        } else {
+          if (document.activeElement === lastFocusableEl || !modal.contains(document.activeElement)) {
+            e.preventDefault();
+            firstFocusableEl.focus();
+          }
+        }
+      }
+    }
+    modal.addEventListener('keydown', handleTrap);
+    modal._removeTrap = () => modal.removeEventListener('keydown', handleTrap);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const openBtn = document.getElementById('openCartDrawer');
+    const closeBtn = document.getElementById('closeCartDrawer');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartOverlay = document.getElementById('cartOverlay');
+
+    openBtn?.addEventListener('click', () => {
+      cartOverlay.classList.remove('hidden');
+      cartDrawer.classList.remove('hidden');
+
+      requestAnimationFrame(() => {
+        cartDrawer.classList.add('open');
+        // Focus the first focusable element in the cart drawer
+        const focusableEls = cartDrawer.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+        if (focusableEls.length) {
+          focusableEls[0].focus();
+        }
+      });
+      if (cartDrawer) trapFocusInModal(cartDrawer);
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      cartDrawer.classList.remove('open');
+      cartOverlay.classList.add('hidden');
+
+      setTimeout(() => {
+        cartDrawer.classList.add('hidden');
+        if (cartDrawer && cartDrawer._removeTrap) cartDrawer._removeTrap();
+      }, 400);
+    });
+
+    cartOverlay?.addEventListener('click', () => {
+      closeBtn?.click(); 
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkoutForm = document.getElementById('checkoutForm');
+
+    if (checkoutForm) {
+      checkoutForm.addEventListener('submit', function (e) {
+        const isLoggedIn = Boolean(window.customerId);
+
+        if (!isLoggedIn) {
+          e.preventDefault();
+          window.location.href = `/account/login?return_to=/checkout`;
+        }
+      });
+    }
+  });
+</script>
+

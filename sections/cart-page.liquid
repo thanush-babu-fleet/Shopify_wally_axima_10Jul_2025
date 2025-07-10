@@ -1,0 +1,358 @@
+{{ 'cart-drawer.css' | asset_url | stylesheet_tag }}
+{% case section.settings.content_alignment %}
+{% when 'left' %}
+  {% assign content_alignment = 'justify-start text-left' %}
+{% when 'right' %}
+  {% assign content_alignment = 'flex-row-reverse text-right' %}
+{% else %}
+  {% assign content_alignment = 'flex-col text-center' %}
+{% endcase %}
+<section class="cartPage">
+  <div class="{% if settings.layout_style == 'detached' %}container max-lg:pb-4 px-4 mx-auto {% endif %}max-lg:mt-10 lg:my-10">
+    <div class="{{ content_alignment }}">
+    <h1 class="text-3xl font-bold mb-1">{{ 'global.cart.title' | t }}</h1>
+    <p id="cartItemCountText" class="text-gray-600 mb-4" style="color: #727471">
+      {{ cart.item_count }} items added
+    </p>
+    </div>
+    {% if cart.item_count > 0 %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 {% if settings.layout_style == 'detached' %}gap-6 lg:gap-14{% endif %}">
+      <div class="md:col-span-2">
+        <div id="cartDrawerItems" class="flex flex-col{% if settings.layout_style == 'detached' %} gap-2{% endif %}">
+          {% render 'cart-drawer-items' %}
+        </div>
+        
+      <div class="md:hidden mt-2 flex flex-col items-center{% if settings.layout_style == 'detached' %} gap-4{% endif %}">
+        {% if settings.enable_terms_conditions %}
+          <div id="terms-wrapper-mobile" class="flex flex-row gap-2 items-center {% unless settings.enable_terms_conditions %}hidden{% endunless %} w-full">
+            <input id="termsCheckboxMobile" type="checkbox" class="w-4 h-4" />
+            <label for="termsCheckboxMobile" class="text-sm">
+              {{ settings.checkbox_label | default: "I agree to the terms and conditions" }}
+            </label>
+          </div>
+        {% endif %}
+          
+           <div class="flex flex-col gap-4 w-full">
+            <div class="bg-black text-white p-6">
+              <div class="flex justify-between text-3xl font-normal flex-wrap">
+                <span class="tracking-wider">{{ 'global.cart.total' | t }}</span>
+                <span id="cartTotalPriceMobile" class="font-bold text-3xl tracking-wider">${{ cart.total_price | money_without_currency }}</span>
+              </div>
+    
+              <form action="/checkout" method="post">
+                <button id="checkoutWithPromoMobile" type="submit" class="w-full mt-4 text-black font-semibold p-3.5 bg-secondary">
+                  Checkout
+                </button>
+              </form>
+            </div>
+          </div>
+      </div>
+        
+      <div id="cart-note-wrapper" class="{% unless settings.enable_order_notes %}hidden{% endunless %}">
+          {% if settings.enable_order_notes %}
+          <div class="{% if settings.layout_style == 'detached' %}max-md:mb-6 mt-4 md:mt-6{% else %}max-md:my-4 md:mt-4 md:mx-10 max-md:text-center{% endif %}">
+            <p class="font-bold text-black text-base mb-4" style="letter-spacing: 0.64px;">{{ 'global.cart.add_instructions' | t }}</p>
+            <form action="/cart" method="post" id="cart-note-form">
+              <textarea name="note" class="w-full p-4 text-sm" aria-label="Order notes" rows="3" placeholder="{{ 'global.cart.notes_placeholder' | t }}" style="background-color:#F6F7F5">{{ cart.note }}</textarea>
+              <button type="submit" class="sr-only">Submit</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if section.settings.show_promo_card %}
+      <div class="md:hidden relative flex flex-col flex-col-reverse items-center justify-between pt-6 pb-8 px-8 min-h-[200px] text-white w-full lg:w-auto flex-shrink-0" style="{% if section.settings.promo_background != blank %} background: {{ section.settings.promo_background }};{% endif %}">
+        <div class="flex-1 w-full flex flex-col mt-7 justify-center items-center">
+          <div class="px-2.5 py-1 mb-3 text-xs tracking-wider w-fit" style="background:{{ section.settings.badge_bg_color }}; color: {{ section.settings.badge_color }}">{{ section.settings.promo_offer_code | truncate: 80  }}</div>
+          <div class="text-3xl !leading-normal font-bold tracking-wider text-center md:text-left mb-6 text-[{{ section.settings.content_color }}]">{{ section.settings.promo_title | truncate: 150 }}</div>
+          {% if section.settings.promo_button_url != blank %}
+            <a href="{{ section.settings.promo_button_url }}" class="bg-primary w-full justify-center text-white px-8 py-3 rounded text-base font-semibold flex items-center gap-2 hover:bg-gray-800 transition" style="text-transform: var(--btn-text-transform);">
+              {{ section.settings.promo_button_label }} 
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9333 13.8798C21.6599 13.6065 21.2167 13.6065 20.9433 13.8798C20.6699 14.1532 20.6699 14.5964 20.9433 14.8698L25.3733 19.2998H13.9383C13.5517 19.2998 13.2383 19.6132 13.2383 19.9998C13.2383 20.3864 13.5517 20.6998 13.9383 20.6998H25.3733L20.9433 25.1298C20.6699 25.4032 20.6699 25.8464 20.9433 26.1198C21.2167 26.3931 21.6599 26.3931 21.9333 26.1198L27.5583 20.4948C27.6254 20.4277 27.676 20.3503 27.7102 20.2678C27.7432 20.188 27.762 20.1008 27.7632 20.0094C27.7634 19.995 27.7632 19.9806 27.7625 19.9662C27.7545 19.7984 27.6864 19.633 27.5583 19.5048L21.9333 13.8798Z" fill="#F6F7F5"/>
+              </svg>
+            </a>
+          {% else %}
+            <button class="bg-primary w-full justify-center text-white px-10 py-3 text-base font-semibold flex items-center gap-2 hover:bg-gray-800 transition" style="text-transform: var(--btn-text-transform);">
+              {{ section.settings.promo_button_label }} 
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9333 13.8798C21.6599 13.6065 21.2167 13.6065 20.9433 13.8798C20.6699 14.1532 20.6699 14.5964 20.9433 14.8698L25.3733 19.2998H13.9383C13.5517 19.2998 13.2383 19.6132 13.2383 19.9998C13.2383 20.3864 13.5517 20.6998 13.9383 20.6998H25.3733L20.9433 25.1298C20.6699 25.4032 20.6699 25.8464 20.9433 26.1198C21.2167 26.3931 21.6599 26.3931 21.9333 26.1198L27.5583 20.4948C27.6254 20.4277 27.676 20.3503 27.7102 20.2678C27.7432 20.188 27.762 20.1008 27.7632 20.0094C27.7634 19.995 27.7632 19.9806 27.7625 19.9662C27.7545 19.7984 27.6864 19.633 27.5583 19.5048L21.9333 13.8798Z" fill="#F6F7F5"/>
+              </svg>
+            </button>
+          {% endif %}
+        </div>
+        <div class="relative flex flex-col md:items-start">
+          {% if section.settings.promo_image != blank %}
+            <div class="max-h-72 w-auto relative z-0">
+            <img src="{{ section.settings.promo_image | image_url: width: 200 }}" alt="{{ section.settings.title }}" class="max-h-72 w-auto" />
+             <div class="absolute top-[20%] left-[50%] z-10 w-[100px] h-[100px] flex items-center justify-center text-white font-bold text-sm text-center leading-tight pointer-events-none">
+            <svg width="100" height="100" viewBox="0 0 100 100" class="absolute inset-0" xmlns="http://www.w3.org/2000/svg">
+              <path d="M50 0L60.3528 11.363L75 6.69873L78.2843 21.7157L93.3013 25L88.637 39.6472L100 50L88.637 60.3528L93.3013 75L78.2843 78.2843L75 93.3013L60.3528 88.637L50 100L39.6472 88.637L25 93.3013L21.7157 78.2843L6.69873 75L11.363 60.3528L0 50L11.363 39.6472L6.69873 25L21.7157 21.7157L25 6.69873L39.6472 11.363L50 0Z" fill="#EA3468"/>
+            </svg>
+            <div class="relative z-10 flex flex-col items-center leading-none">
+              <span class="text-xs">Save</span>
+              <span class="text-lg font-extrabold">{{ section.settings.promo_sale_percentage }}</span>
+            </div>
+          </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+      <div class="max-md:hidden flex flex-col items-center {% if settings.layout_style == 'detached' %}gap-4{% endif %}">
+        {% if settings.enable_terms_conditions %}
+          <div id="terms-wrapper-desktop" class="flex flex-row gap-2 mb-2 items-center {% unless settings.enable_terms_conditions %}hidden{% endunless %} w-full">
+            <input id="termsCheckboxDesktop" type="checkbox" class="w-4 h-4" />
+            <label for="termsCheckboxDesktop" class="text-sm">
+              {{ settings.checkbox_label | default: "I agree to the terms and conditions" }}
+            </label>
+          </div>
+        {% endif %}
+          
+        <div class="flex flex-col gap-4 w-full">
+            <div class="bg-black text-white p-6">
+              <div class="flex justify-between text-3xl font-normal flex-wrap">
+                <span class="tracking-wider">{{ 'global.cart.total' | t }}</span>
+                <span id="cartTotalPriceDesktop" class="font-bold text-3xl tracking-wider">${{ cart.total_price | money_without_currency }}</span>
+              </div>
+    
+              <form action="/checkout" method="post">
+                <button id="checkoutWithPromoDesktop" type="submit" class="w-full mt-4 text-black font-semibold p-3.5 bg-secondary">
+                  Checkout
+                </button>
+              </form>
+            </div>
+        </div>
+      {% if section.settings.show_promo_card %}
+      <div class="relative flex flex-col-reverse {% if settings.layout_style == 'detached' %}lg:flex-col-reverse {% else %}xl:flex-row {% endif %}items-center justify-between p-8 min-h-[200px] text-white w-full lg:w-auto flex-shrink-0" style="{% if section.settings.promo_background != blank %} background: {{ section.settings.promo_background }};{% endif %}">
+        <div class="flex-1 xl:pr-4 w-full{% if settings.layout_style == 'detached' %} flex flex-col justify-center items-center mt-7{% endif %}">
+          <div class="px-2.5 py-1 mb-3 text-xs tracking-wider w-fit" style="background:{{ section.settings.badge_bg_color }}; color: {{ section.settings.badge_color }}">{{ section.settings.promo_offer_code | truncate: 80  }}</div>
+          <div class="text-3xl !leading-normal font-bold tracking-wider{% if settings.layout_style == 'detached' %} mb-6 text-center{% else %} mb-6 md:mb-12 text-center md:text-left{% endif %} text-[{{ section.settings.content_color }}]">{{ section.settings.promo_title | truncate: 150 }}</div>
+          {% if section.settings.promo_button_url != blank %}
+            <a href="{{ section.settings.promo_button_url }}" class="bg-primary w-full xl:w-fit text-center text-white px-5 2xl:px-8 py-3 rounded text-base font-semibold flex items-center hover:bg-gray-800 transition" style="text-transform: var(--btn-text-transform);">
+              {{ section.settings.promo_button_label }} 
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9333 13.8798C21.6599 13.6065 21.2167 13.6065 20.9433 13.8798C20.6699 14.1532 20.6699 14.5964 20.9433 14.8698L25.3733 19.2998H13.9383C13.5517 19.2998 13.2383 19.6132 13.2383 19.9998C13.2383 20.3864 13.5517 20.6998 13.9383 20.6998H25.3733L20.9433 25.1298C20.6699 25.4032 20.6699 25.8464 20.9433 26.1198C21.2167 26.3931 21.6599 26.3931 21.9333 26.1198L27.5583 20.4948C27.6254 20.4277 27.676 20.3503 27.7102 20.2678C27.7432 20.188 27.762 20.1008 27.7632 20.0094C27.7634 19.995 27.7632 19.9806 27.7625 19.9662C27.7545 19.7984 27.6864 19.633 27.5583 19.5048L21.9333 13.8798Z" fill="#F6F7F5"/>
+              </svg>
+            </a>
+          {% else %}
+            <button class="bg-primary w-full text-center justify-center xl:w-fit text-white px-5 2xl:px-10 py-3 text-base font-semibold flex items-center hover:bg-gray-800 transition" style="text-transform: var(--btn-text-transform);">
+              {{ section.settings.promo_button_label }} 
+              <svg width="41" height="40" viewBox="0 0 41 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M21.9333 13.8798C21.6599 13.6065 21.2167 13.6065 20.9433 13.8798C20.6699 14.1532 20.6699 14.5964 20.9433 14.8698L25.3733 19.2998H13.9383C13.5517 19.2998 13.2383 19.6132 13.2383 19.9998C13.2383 20.3864 13.5517 20.6998 13.9383 20.6998H25.3733L20.9433 25.1298C20.6699 25.4032 20.6699 25.8464 20.9433 26.1198C21.2167 26.3931 21.6599 26.3931 21.9333 26.1198L27.5583 20.4948C27.6254 20.4277 27.676 20.3503 27.7102 20.2678C27.7432 20.188 27.762 20.1008 27.7632 20.0094C27.7634 19.995 27.7632 19.9806 27.7625 19.9662C27.7545 19.7984 27.6864 19.633 27.5583 19.5048L21.9333 13.8798Z" fill="#F6F7F5"/>
+              </svg>
+            </button>
+          {% endif %}
+        </div>
+        <div class="relative flex flex-col md:items-start{% if settings.layout_style == 'attached' %} 2xl:w-[30%]{% endif %}">
+          {% if section.settings.promo_image != blank %}
+            <div class="max-h-72 w-auto relative z-0">
+            <img src="{{ section.settings.promo_image | image_url: width: 200 }}" alt="{{ section.settings.title }}" class="max-h-72 w-auto" />
+             <div class="absolute top-[20%] left-[50%] z-10 w-[100px] h-[100px] flex items-center justify-center text-white font-bold text-sm text-center leading-tight pointer-events-none">
+            <svg width="100" height="100" viewBox="0 0 100 100" class="absolute inset-0" xmlns="http://www.w3.org/2000/svg">
+              <path d="M50 0L60.3528 11.363L75 6.69873L78.2843 21.7157L93.3013 25L88.637 39.6472L100 50L88.637 60.3528L93.3013 75L78.2843 78.2843L75 93.3013L60.3528 88.637L50 100L39.6472 88.637L25 93.3013L21.7157 78.2843L6.69873 75L11.363 60.3528L0 50L11.363 39.6472L6.69873 25L21.7157 21.7157L25 6.69873L39.6472 11.363L50 0Z" fill="#EA3468"/>
+            </svg>
+            <div class="relative z-10 flex flex-col items-center leading-none">
+              <span class="text-xs">Save</span>
+              <span class="text-lg font-extrabold">{{ section.settings.promo_sale_percentage }}</span>
+            </div>
+          </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+    </div>
+
+    </div>
+    {% else %}
+    <div id="emptyCartUi" class="empty-cart-ui text-center flex flex-col items-center justify-center">
+      <span class="empty-icon svg-wrapper">
+        {{ 'cart-empty-icon.svg' | inline_asset_content }}
+      </span>
+      <h1 class="text-xl text-primary font-bold">
+        {{ 'global.cart.empty' | t }}
+      </h1>
+      <p class="mt-2" style="color: #8C9289">{{ 'global.cart.emptydes' | t }}</p>
+
+      {% if settings.display_links_when_empty and settings.link_list != blank %}
+      <ul class="my-6 flex flex-col gap-2">
+        {% for link in linklists[settings.link_list].links %}
+        <li>
+          <a href="{{ link.url }}" class="text-sm underline hover:text-black">
+            {{ link.title }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <a href="/collections/all" id="buyNowButton">
+        <button class="my-6 secondary-btn btn-small font-semibold flex flex-row items-center justify-center gap-3">
+          {{ 'global.cart.buynow' | t | default: 'Buy Now' }}
+          <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M9.22915 1.13862C8.95579 0.865252 8.51257 0.865252 8.2392 1.13862C7.96584 1.41199 7.96584 1.8552 8.2392 2.12857L12.6692 6.55859H1.23418C0.84758 6.55859 0.53418 6.87199 0.53418 7.25859C0.53418 7.64519 0.84758 7.95859 1.23418 7.95859H12.6692L8.2392 12.3886C7.96584 12.662 7.96584 13.1052 8.2392 13.3786C8.51257 13.6519 8.95579 13.6519 9.22915 13.3786L14.8542 7.75357C14.9213 7.68645 14.9719 7.6091 15.0061 7.52654C15.0391 7.44679 15.0579 7.35961 15.0591 7.26819C15.0593 7.2538 15.0591 7.2394 15.0584 7.22501C15.0504 7.05722 14.9823 6.89176 14.8542 6.76362L9.22915 1.13862Z"
+              fill="black" />
+          </svg>
+        </button>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+function initTermsCheckboxLogic() {
+  const mobileCheckbox = document.getElementById('termsCheckboxMobile');
+  const desktopCheckbox = document.getElementById('termsCheckboxDesktop');
+  const mobileCheckoutBtn = document.getElementById('checkoutWithPromoMobile');
+  const desktopCheckoutBtn = document.getElementById('checkoutWithPromoDesktop');
+
+  function toggleState(checkbox, button) {
+    if (!checkbox || !button) return;
+    button.disabled = !checkbox.checked;
+    button.classList.toggle('opacity-50', !checkbox.checked);
+    button.classList.toggle('cursor-not-allowed', !checkbox.checked);
+  }
+
+  // Initialize states
+  toggleState(mobileCheckbox, mobileCheckoutBtn);
+  toggleState(desktopCheckbox, desktopCheckoutBtn);
+
+  // Add event listeners
+  if (mobileCheckbox) {
+    mobileCheckbox.addEventListener('change', () => toggleState(mobileCheckbox, mobileCheckoutBtn));
+  }
+  if (desktopCheckbox) {
+    desktopCheckbox.addEventListener('change', () => toggleState(desktopCheckbox, desktopCheckoutBtn));
+  }
+
+  // Handle checkout clicks
+  [mobileCheckoutBtn, desktopCheckoutBtn].forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', function(e) {
+        if (this.disabled) {
+          e.preventDefault();
+          return;
+        }
+        const isLoggedIn = Boolean(window.customerId);
+        if (!isLoggedIn) {
+          e.preventDefault();
+          window.location.href = `/account/login?return_to=${encodeURIComponent('/checkout')}`;
+        }
+      });
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initTermsCheckboxLogic);
+document.addEventListener('cart:updated', initTermsCheckboxLogic);
+</script>
+
+
+<style>
+.cartPage{
+   .text-tertiary {
+    color: inherit;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #273025;
+  }
+}
+</style>
+{% schema %}
+{
+  "name": "Cart Page",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Heading Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_promo_card",
+      "label": "Show Promo Card",
+      "default": true,
+      "info": "The Promo Banner Contents will be displayed only when this button is enabled."
+    },
+    {
+      "type": "header",
+      "content": "Promo Banner"
+    },
+    {
+      "type": "text",
+      "id": "promo_offer_code",
+      "label": "Offer Code",
+      "default": "HOLIDAY GIFTS:25% OFF"
+    },
+    {
+      "type": "text",
+      "id": "promo_title",
+      "label": "Promo Title",
+      "default": "Aloe vera enriched skincare routine"
+    },
+    {
+      "type": "text",
+      "id": "promo_button_label",
+      "label": "Button Label",
+      "default": "Buy Now"
+    },
+    {
+      "type": "url",
+      "id": "promo_button_url",
+      "label": "Button URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "promo_image",
+      "label": "Promo Image"
+    },
+    {
+      "type": "text",
+      "id": "promo_sale_percentage",
+      "label": "Sale Percentage",
+      "default": "25%"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color_background",
+      "id": "promo_background",
+      "label": "Promo Card Background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "badge_color",
+      "label": "Badge Color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg_color",
+      "label": "Badge Background Color",
+      "default": "#EEF1EC33"
+    },
+    {
+      "type": "color",
+      "id": "content_color",
+      "label": "Content Color",
+      "default": "#FFFFFF"
+    }
+  ]
+}
+
+{% endschema %}

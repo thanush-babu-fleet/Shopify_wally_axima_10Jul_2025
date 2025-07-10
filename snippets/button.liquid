@@ -1,0 +1,20 @@
+{%- assign button_text = button_text | default: "Click Here" -%}
+{%- assign button_url = button_url | default: "#" -%}
+{%- assign button_type = button_type | default: "tertiary" -%}
+{%- assign button_size = button_size | default: "small" -%}
+{%- assign show_arrow = show_arrow | default: false -%}
+{%- assign button_newtab = button_newtab | default: false -%}
+{%- assign button_icon = button_icon | default: "" -%}
+
+<a role="button" href="{{ button_url }}" aria-label="{{ button_text }}"
+  class="button {{ button_type }}-btn btn-{{ button_size }} w-max flex gap-3 items-center justify-center"
+  {% if button_newtab %} target="_blank" {% endif %}>
+  
+  {{ button_text }}
+
+  {% if button_icon != blank %}
+    <img src="{{ button_icon | image_url: width: 24 }}" width="" height="" alt="button-icon" class="w-4 h-4" />
+  {% elsif show_arrow %}
+    {{- 'readMore-arrow.svg' | inline_asset_content -}}
+  {% endif %}
+</a>

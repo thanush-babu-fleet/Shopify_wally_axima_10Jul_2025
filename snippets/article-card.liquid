@@ -1,0 +1,76 @@
+<div class="article-card border group h-full flex flex-col justify-between {% if hidden %}hidden{% endif %}" data-page="{{ data_page }}" >
+    <div>
+        <a href="{{ article.url }}" class="h-60 block overflow-hidden">
+            <img
+                srcset="
+                    {%- if article.image.src.width >= 165 -%}{{ article.image.src | image_url: width: 165 }} 165w,{%- endif -%}
+                    {%- if article.image.src.width >= 360 -%}{{ article.image.src | image_url: width: 360 }} 360w,{%- endif -%}
+                    {%- if article.image.src.width >= 533 -%}{{ article.image.src | image_url: width: 533 }} 533w,{%- endif -%}
+                    {%- if article.image.src.width >= 720 -%}{{ article.image.src | image_url: width: 720 }} 720w,{%- endif -%}
+                    {%- if article.image.src.width >= 1000 -%}{{ article.image.src | image_url: width: 1000 }} 1000w,{%- endif -%}
+                    {%- if article.image.src.width >= 1500 -%}{{ article.image.src | image_url: width: 1500 }} 1500w,{%- endif -%}
+                    {{ article.image.src | image_url }} {{ article.image.src.width }}w
+                "
+                src="{{ article.image.src | image_url: width: 533 }}"
+                sizes="(min-width: {{ settings.page_width }}px) {{ settings.page_width | minus: 100 | divided_by: 2 }}px, (min-width: 750px) calc((100vw - 130px) / 2), calc((100vw - 50px) / 2)"
+                alt="{{ article.image.src.alt | escape }}"
+                class="motion-reduce group-hover:scale-105 transition ease-in-out w-full h-full object-cover"
+                {% unless lazy_load == false %}
+                    loading="lazy"
+                {% endunless %}
+                width="{{ article.image.width }}"
+                height="{{ article.image.height }}"
+            />
+        </a>
+        <div class="article-info p-6 flex flex-col gap-2">
+            {% if article.tags.size > 0 %}
+                <div class="flex gap-2 flex-wrap">
+                    {% for tag in article.tags %}
+                        <span class="badge text-xs !leading-normal w-max uppercase font-medium py-1 px-2.5 tracking-widest" style="background-color: {{ badge_bg }}; color: {{ badge_text }}">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        
+            <a href="{{ article.url }}"><h3 class="font-semibold text-xl !leading-normal">{{ article.title | truncate: 60  }}</h3></a>
+        
+            <div class="meta flex flex-wrap gap-2 items-center text-sm">
+               {% assign author_name = article.metafields.custom.author_name %}
+               {% assign designation = article.metafields.custom.designation %}
+                {% if show_author %}
+                    {% assign profile_img = article.metafields.custom.profile %}
+                    {% if profile_img != blank %}
+                        <div class="border border-black rounded-full w-8 h-8 overflow-hidden p-0.5">
+                        {{ profile_img | image_url: width: 32 | image_tag: 
+                            class: 'w-full h-full rounded-full object-cover',
+                            alt: article.author,
+                            preload: true 
+                        }}
+                        </div>
+                    {% endif %}
+                    <div>
+                     <div>
+                        <p class="text-sm"><strong>{% if author_name %}{{ author_name }}{% else %}{{ article.author }}{% endif %}</strong>{% if designation %}, {{ designation }} {% endif %}</p>
+                    </div>
+                {% endif %}
+        
+                {% if show_date %}
+                    <span class="date">{{ article.published_at | date: "%b %d, %Y" }}</span>
+                {% endif %}
+            </div>
+            </div>
+        
+            {% if article.content %}
+                <span class="description line-clamp-2 text-sm">{{ article.content | strip_html | truncate: 120 }}</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="px-6 pb-6">
+      <a href="{{ article.url }}" role="button" class="primary-btn text-base font-semibold w-max flex items-center justify-center py-1 pl-6 pr-3 text-white hover:text-black">
+        Read more
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20.4434 13.8798C20.7167 13.6065 21.1602 13.6065 21.4336 13.8798L27.0586 19.5048L27.1484 19.6142C27.1654 19.6399 27.1772 19.6681 27.1904 19.6953C27.1962 19.7072 27.2039 19.7182 27.209 19.7304C27.2174 19.7507 27.2221 19.7721 27.2285 19.7929C27.2489 19.8586 27.2637 19.9276 27.2637 19.9999C27.2637 20.0589 27.252 20.1152 27.2383 20.1699C27.2304 20.2013 27.2242 20.2333 27.2119 20.2636C27.2112 20.2654 27.2097 20.2668 27.209 20.2685C27.2063 20.275 27.2021 20.2807 27.1992 20.2871C27.1833 20.3223 27.1656 20.3569 27.1436 20.3896C27.1182 20.4272 27.0905 20.4631 27.0586 20.4951L21.4336 26.1201C21.1603 26.3934 20.7167 26.3932 20.4434 26.1201C20.17 25.8467 20.17 25.4032 20.4434 25.1298L24.873 20.7001H13.4385C13.0519 20.7001 12.7384 20.3865 12.7383 19.9999C12.7383 19.6133 13.0519 19.2998 13.4385 19.2998H24.873L20.4434 14.8701C20.17 14.5967 20.17 14.1532 20.4434 13.8798Z" fill="currentColor"/>
+        </svg>
+      </a>
+    </div>
+</div>

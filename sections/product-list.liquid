@@ -1,0 +1,545 @@
+<div class="product-list-page">
+  <div class="{% if settings.layout_style == 'detached' %}container px-4 mx-auto mb-4 md:mb-14{% else %}mb-4 md:mb-7{% endif %}">
+    <div class="flex flex-col justify-between text-center{% if settings.layout_style == 'detached' %} mt-10 mb-9 md:mb-10{% else %} my-10{% endif %} max-md:px-5">
+      <div class="w-full">
+      <h2 class="mb-1 text-3xl font-bold !leading-normal tertiary">
+        {% if collection.title == 'Products' %}
+          All Products
+        {% else %}
+          {{ collection.title }}
+        {% endif %}
+      </h2>
+      {% if section.settings.show_filter_count %}
+      {% paginate collection.products by section.settings.products_to_show %}
+        {% assign end = paginate.current_offset | plus: collection.products.size %}
+        <p class="text-gray-600 mb-4">
+          Showing <strong>{{ end }}</strong> of <strong>{{ paginate.items }}</strong>
+        </p>
+      {% endpaginate %}
+      {% endif %}
+      </div>
+        <p class="text-base font-medium mb-4" style="color: var(--accent-color);">
+          Discover all our certified organic skincare products with clinically proven effectiveness!
+        </p>
+      <div class="flex items-center justify-center gap-3">
+      {% if section.settings.enable_sort %}
+        <form method="get" id="sortForm">
+          <label for="SortBy" class="sr-only">Sort by</label>
+          <div class="custom-select-wrapper relative w-max ml-auto">
+            <select name="sort_by" id="SortBy" class="custom-select appearance-none border py-2 px-3 text-base font-medium" style="color:var(--paragraph-color)" onchange="document.getElementById('sortForm').submit()">
+              <option value="manual" {% if collection.sort_by == "manual" %}selected{% endif %}>Featured</option>
+              <option value="best-selling" {% if collection.sort_by == "best-selling" %}selected{% endif %}>Best Selling</option>
+              <option value="title-ascending" {% if collection.sort_by == "title-ascending" %}selected{% endif %}>Alphabetically, A–Z</option>
+              <option value="title-descending" {% if collection.sort_by == "title-descending" %}selected{% endif %}>Alphabetically, Z–A</option>
+              <option value="created-descending" {% if collection.sort_by == "created-descending" %}selected{% endif %}>Date, New to Old</option>
+              <option value="created-ascending" {% if collection.sort_by == "created-ascending" %}selected{% endif %}>Date, Old to New</option>
+            </select>
+            <span class="custom-arrow pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+              {{- 'down_arrow.svg' | inline_asset_content -}}
+            </span>
+          </div>
+          {% for filter in collection.filters %}
+            {% for value in filter.values %}
+              {% if value.active %}
+                <input type="hidden" name="{{ filter.param_name }}" value="{{ value.value }}">
+              {% endif %}
+            {% endfor %}
+            {% if filter.min_value.value %}
+              <input type="hidden" name="{{ filter.min_value.param_name }}" value="{{ filter.min_value.value | money_without_currency }}">
+            {% endif %}
+            {% if filter.max_value.value %}
+              <input type="hidden" name="{{ filter.max_value.param_name }}" value="{{ filter.max_value.value | money_without_currency }}">
+            {% endif %}
+          {% endfor %}
+        </form>             
+      {% endif %}
+      {% if section.settings.enable_filter %}
+          <button 
+            onclick="openFilterDrawer()" 
+            class="border py-2 px-3 text-base font-medium w-max"
+            style="color:var(--paragraph-color)" 
+          >
+            <span class="show_filter flex gap-3.5 items-center justify-centerr">
+               {{- 'filter_sort.svg' | inline_asset_content -}}
+              Filter and sort
+            </span>
+            <span class="hide_filter hidden gap-3 items-center justify-center">
+              Hide Filters
+              {{- 'up_arrow.svg' | inline_asset_content -}}
+            </span>
+          </button>
+      {% endif %}
+      </div>
+    </div>
+    {% paginate collection.products by section.settings.products_to_show %}
+      <div class="flex flex-col-reverse sm:flex-row">
+        {% if collection.products.size == 0 %}
+          <div class="w-full text-center py-10">
+            <p class="text-gray-600 text-lg">No products found. Try adjusting your filters.</p>
+          </div>
+        {% else %}
+          <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-{{ section.settings.columns_desktop }}{% if settings.layout_style == 'detached' %} card-space{% endif %}">
+            {% for product in collection.products %}
+              {% render 'product-card', product: product %}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div id="filterDrawer" class="hidden fixed inset-0 z-50 overflow-hidden">
+          <div class="absolute inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeFilterDrawer()"></div>
+          <div class="fixed inset-y-0 right-0 flex max-w-full">
+            <div class="w-screen max-w-sm transform transition-transform duration-300 ease-in-out translate-x-full" id="filterDrawerContent">
+              <div class="h-full flex flex-col bg-white p-4">
+                <div class="flex items-center justify-between py-1">
+                  <h2 class="text-xl font-semibold">Sort and filter</h2>
+                  <button onclick="closeFilterDrawer()" class="text-black">
+                   <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                   <path d="M25.1308 13.8798C25.4042 13.6065 25.8477 13.6065 26.121 13.8798C26.3942 14.1532 26.3943 14.5968 26.121 14.8701L20.9912 19.9999L26.121 25.1298C26.3942 25.4032 26.3943 25.8468 26.121 26.1201C25.8477 26.3934 25.4042 26.3932 25.1308 26.1201L20.0009 20.9902L14.871 26.1201C14.5977 26.3934 14.1542 26.3932 13.8808 26.1201C13.6074 25.8467 13.6074 25.4032 13.8808 25.1298L19.0107 19.9999L13.8808 14.8701C13.6074 14.5967 13.6074 14.1532 13.8808 13.8798C14.1542 13.6065 14.5977 13.6065 14.871 13.8798L20.0009 19.0097L25.1308 13.8798Z" fill="#273025"/>
+                   </svg>
+                  </button>
+                </div>
+                <div class="flex-1 overflow-y-auto mt-2">
+                  <form method="GET" id="filterForm" class="space-y-6">
+                      <fieldset class="price_sort_filter">
+                        <legend class="font-bold mb-2 tracking-wider tertiary">Sort by Price</legend>
+                        <div class="space-y-2">
+                          <label for="sort-price-ascending" class="flex items-center gap-2 cursor-pointer font-medium tracking-wider tertiary">
+                            <input
+                              type="radio"
+                              id="sort-price-ascending"
+                              name="sort_by"
+                              value="price-ascending"
+                              {% if collection.sort_by == "price-ascending" %}checked{% endif %}
+                              class="sr-only peer"
+                            >
+                            <span class="w-2.5 h-2.5 rounded-full ring-1 ring-black ring-offset-2 peer-checked:bg-black m-1.5 tertiary"></span>
+                            Price, Low to High
+                          </label>
+                          <label for="sort-price-descending" class="flex items-center gap-2 cursor-pointer font-medium tracking-wider tertiary">
+                            <input
+                              type="radio"
+                              id="sort-price-descending"
+                              name="sort_by"
+                              value="price-descending"
+                              {% if collection.sort_by == "price-descending" %}checked{% endif %}
+                              class="sr-only peer"
+                            >
+                            <span class="w-2.5 h-2.5 rounded-full ring-1 ring-black ring-offset-2 peer-checked:bg-black m-1.5 tertiary"></span>
+                            Price, High to Low
+                          </label>
+                        </div>
+                      </fieldset>  
+                    {% for filter in collection.filters %}
+                      {% case filter.label %}
+                      {% when 'Availability' %}
+                        {% assign availability_active = false %}
+                        {% for value in filter.values %}
+                          {% if value.active %}
+                            {% assign availability_active = true %}
+                          {% endif %}
+                        {% endfor %}
+                        <fieldset class="availability_filter">
+                          <legend class="font-bold mb-2 tracking-wider tertiary">{{ filter.label }}</legend>
+                          <ul class="space-y-2">
+                            <li>
+                              <label for="availability-all" class="flex items-center gap-2 cursor-pointer font-medium tracking-wider tertiary">
+                                <input
+                                  id="availability-all"
+                                  type="radio"
+                                  name="filter.v.availability"
+                                  value=""
+                                  {% unless availability_active %}checked{% endunless %}
+                                  class="sr-only peer"
+                                >
+                                  <span class="w-2.5 h-2.5 rounded-full ring-1 ring-black ring-offset-2 peer-checked:bg-black m-1.5 tertiary"></span>
+                                  All
+                              </label>
+                            </li>
+                            {% for value in filter.values %}
+                              {% unless value.label == 'Out of stock' %}
+                                <li>
+                                  <label for="availabilty-{{ forloop.index }}" class="flex items-center gap-2 cursor-pointer font-medium tracking-wider tertiary">
+                                    <input
+                                      type="radio"
+                                      id="availabilty-{{ forloop.index }}"
+                                      name="filter.v.availability"
+                                      value="{{ value.value }}"
+                                      {% if value.active %}checked{% endif %}
+                                      class="sr-only peer"
+                                    >
+                                      <span class="w-2.5 h-2.5 rounded-full ring-1 ring-black ring-offset-2 peer-checked:bg-black m-1.5 tertiary"></span>
+                                    {{ value.label }}
+                                  </label>
+                                </li>
+                              {% endunless %}
+                            {% endfor %}
+                          </ul>
+                        </fieldset>
+
+                        {% when 'Price' %}
+                          <fieldset class="price_filter">
+                            <legend class="font-semibold tracking-wider tertiary">Price Range</legend>
+                            <div class="flex items-center gap-2 pt-2">
+                              <div class="relative flex items-center gap-2">
+                                <label for="min-price-{{ forloop.index }}" class="sr-only">Minimum Price</label>
+                                <span class="field-currency absolute text-gray left-4 tertiary">{{ cart.currency.symbol }}</span>
+                                <input
+                                  type="number"
+                                  id="min-price-{{ forloop.index }}"
+                                  name="{{ filter.min_value.param_name }}"
+                                  class="w-full border border-black rounded-4xl overflow-hidden p-2 pl-8"
+                                  {%- if filter.min_value.value -%}
+                                    value="{{ filter.min_value.value | money_without_currency }}"
+                                  {%- endif -%}
+                                  placeholder="0"
+                                  data-max="{{ filter.range_max | money_without_currency }}"
+                                >
+                              </div>
+                              <span>-</span>
+                              <div class="relative flex items-center gap-2">
+                                <label for="max-price-{{ forloop.index }}" class="sr-only">Maximum Price</label>
+                                <span class="field-currency absolute text-gray left-4 tertiary">{{ cart.currency.symbol }}</span>
+                                <input
+                                  type="number"
+                                  id="max-price-{{ forloop.index }}"
+                                  name="{{ filter.max_value.param_name }}"
+                                  class="w-full border border-black rounded-4xl overflow-hidden p-2 pl-8"
+                                  {%- if filter.max_value.value -%}
+                                    value="{{ filter.max_value.value | money_without_currency }}"
+                                  {%- endif -%}
+                                  placeholder="{{ filter.range_max | money_without_currency }}"
+                                  data-max="{{ filter.range_max | money_without_currency }}"
+                                >
+                              </div>
+                            </div>
+                          </fieldset>
+                        
+                        {% when 'Color' %}
+                          <fieldset class="color-filter">
+                            <legend class="font-bold mb-2 tracking-wider tertiary">{{ filter.label }}</legend>
+                            <div class="flex flex-wrap gap-3 items-center">
+                              {% for value in filter.values %}
+                                <div>
+                                  <label for="color-{{ value.label | downcase }}-{{ forloop.index }}" class="flex items-center gap-2 cursor-pointer font-medium tracking-wider tertiary">
+                                    <input
+                                      class="visually-hidden"
+                                      type="checkbox"
+                                      id="color-{{ value.label | downcase }}-{{ forloop.index }}"
+                                      name="{{ filter.param_name }}"
+                                      value="{{ value.value }}"
+                                      {% if value.active %}checked{% endif %}
+                                    >
+                                      <span
+                                        class="color-swatch w-5 h-5 rounded-full border inline-block border-gray-300 tertiary"
+                                        style="background-color: {{ value.label | downcase }};"
+                                        title="{{ value.label }}"
+                                      ></span>
+                                  </label>
+                                </div>
+                              {% endfor %}
+                            </div>
+                          </fieldset>
+
+                        {% else %}
+                          <fieldset>
+                            <legend class="font-bold mb-2 tracking-wider tertiary">{{ filter.label }}</legend>
+                            <ul class="space-y-2">
+                              {% for value in filter.values %}
+                                <li>
+                                  <label for="{{ value.value }}-{{forloop.index }}" class="relative flex items-center gap-2 cursor-pointer font-medium tracking-wider tertiary">
+                                    <input
+                                      type="checkbox"
+                                      id="{{ value.value }}-{{forloop.index }}"
+                                      name="{{ filter.param_name }}"
+                                      value="{{ value.value }}"
+                                      {% if value.active %}checked{% endif %}
+                                      class="sr-only peer"
+                                    >
+                                      <span class="w-4 h-4 rounded-sm border border-tertiary flex items-center justify-center peer-checked:bg-black peer-checked:border-tertiary">
+                                      </span>
+                                      <svg
+                                        class="absolute left-0.5 w-3 h-3 text-white hidden peer-checked:block"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="3"
+                                      >
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    {{ value.label }}
+                                  </label>
+                                </li>
+                              {% endfor %}
+                            </ul>
+                          </fieldset>
+                      {% endcase %}
+                    {% endfor %}
+                    {% assign has_active_filters = false %}
+                    {% for filter in collection.filters %}
+                      {% for value in filter.values %}
+                        {% if value.active %}
+                          {% assign has_active_filters = true %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endfor %}
+                    {% if has_active_filters %}
+                    <a href="{{ collection.url }}?filters_open=true" class="text-sm text-red-900 underline">Clear Filter</a>
+                    {% endif %}
+                  </form>
+                </div>
+                  <button type="button" onclick="applyFilters()" class="w-full mt-10 bg-primary text-white py-3.5 px-4 hover:bg-gray-800 transition-colors">
+                    Apply
+                  </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if paginate.pages > 1 %}
+        {% if section.settings.pagination_type == 'loadmore' and paginate.next %}
+          <div class="text-center mt-8">
+            <button 
+              id="load-more-btn"
+              data-next-url="{{ paginate.next.url }}" 
+              class="px-6 py-2 bg-black text-white rounded"
+            >
+              Load More
+            </button>
+          </div>
+        {% endif %}
+        
+        {% if section.settings.pagination_type == 'paginated' and paginate.pages > 1 %}
+          <div class="mt-6 md:mt-12 flex flex-wrap justify-center items-center gap-4" role="navigation" aria-label="Pagination">
+            {% if paginate.previous %}
+              <a href="{{ paginate.previous.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">
+                <span class="sr-only">Go to previous page</span>
+                {{- 'left-arrow.svg' | inline_asset_content -}}
+              </a>
+            {% else %}
+              <span class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center opacity-50 pointer-events-none">
+                <span class="sr-only">Go to previous page</span>
+                {{- 'left-arrow.svg' | inline_asset_content -}}
+              </span>
+            {% endif %}
+        
+            {% for part in paginate.parts %}
+              {% if part.is_link %}
+                <a aria-label="page-{{ part.title }}" href="{{ part.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">{{ part.title }}</a>
+              {% else %}
+                <span class="rounded-full bg-secondary w-12 h-12 flex items-center justify-center">{{ part.title }}</span>
+              {% endif %}
+            {% endfor %}
+        
+            {% if paginate.next %}
+              <a href="{{ paginate.next.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center hover:bg-secondary">
+                <span class="sr-only">Go to next page</span>
+                {{- 'right-arrow.svg' | inline_asset_content -}}
+              </a>
+            {% else %}
+              <span role="link" aria-disabled="true" tabindex="-1" href="{{ paginate.next.url }}" class="rounded-full bg-graylight w-12 h-12 flex items-center justify-center opacity-50 pointer-events-none">
+                <span class="sr-only">Go to next page</span>
+                {{- 'right-arrow.svg' | inline_asset_content -}}
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endif %}
+    {% endpaginate %}
+  </div>
+</div>
+<style>
+  .bg-tertiary {
+      background-color: var(--paragraph-color);
+    }
+    .border-tertiary {
+      border-color: var(--paragraph-color);
+    }
+  .product-list-page{
+    .tertiary{
+      color: var(--paragraph-color);
+    }
+    .card-space {
+      @media(max-width: 768px) {
+        gap: 16px;
+      }
+    }
+  }
+</style>
+<script>
+  function applyFilters() {
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    // Collect all active filters
+    for (let [key, value] of formData.entries()) {
+      if (value) {
+        params.append(key, value);
+      }
+    }
+    
+    // Get the selected price sort value
+    const selectedPriceSort = form.querySelector('input[name="sort_by"]:checked');
+    if (selectedPriceSort) {
+      params.set('sort_by', selectedPriceSort.value);
+    } else {
+      // If no price sort is selected, use the dropdown value
+      const sortSelect = document.getElementById('SortBy');
+      if (sortSelect && sortSelect.value) {
+        params.set('sort_by', sortSelect.value);
+      }
+    }
+    
+    // Redirect to filtered URL
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+  }
+
+  function openFilterDrawer() {
+    const drawer = document.getElementById('filterDrawer');
+    const drawerContent = document.getElementById('filterDrawerContent');
+    drawer.classList.remove('hidden');
+    // Trigger reflow
+    drawer.offsetHeight;
+    drawerContent.classList.remove('translate-x-full');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeFilterDrawer() {
+    const drawer = document.getElementById('filterDrawer');
+    const drawerContent = document.getElementById('filterDrawerContent');
+    drawerContent.classList.add('translate-x-full');
+    setTimeout(() => {
+      drawer.classList.add('hidden');
+      document.body.style.overflow = '';
+    }, 300);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('filters_open') === 'true') {
+      openFilterDrawer();
+    }
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', async function () {
+        const nextUrl = loadMoreBtn.getAttribute('data-next-url');
+        loadMoreBtn.textContent = 'Loading...';
+
+        try {
+          const response = await fetch(nextUrl);
+          const text = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+
+          const newProducts = doc.querySelector('#product-list').innerHTML;
+          const newNextUrl = doc.querySelector('#load-more-btn')?.getAttribute('data-next-url');
+
+          document.querySelector('#product-list').insertAdjacentHTML('beforeend', newProducts);
+
+          if (newNextUrl) {
+            loadMoreBtn.setAttribute('data-next-url', newNextUrl);
+            loadMoreBtn.textContent = 'Load More';
+          } else {
+            loadMoreBtn.remove();
+          }
+
+        } catch (error) {
+          console.error('Load more failed:', error);
+          loadMoreBtn.textContent = 'Failed to load';
+        }
+      });
+    }
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sortForm = document.getElementById('sortForm');
+    const filterForm = document.getElementById('filterForm');
+
+    if (sortForm && filterForm) {
+      sortForm.addEventListener('submit', function () {
+        // Clear existing hidden inputs first
+        sortForm.querySelectorAll('input[type="hidden"]').forEach(e => e.remove());
+
+        // Copy active filter inputs into sort form as hidden inputs
+        const filterInputs = filterForm.querySelectorAll('input, select');
+        filterInputs.forEach(input => {
+          if (
+            (input.type === 'checkbox' || input.type === 'radio') &&
+            !input.checked
+          ) return;
+
+          if (input.value !== '') {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = input.name;
+            hiddenInput.value = input.value;
+            sortForm.appendChild(hiddenInput);
+          }
+        });
+      });
+    }
+  });
+</script>
+
+
+{% schema %}
+{
+  "name": "Product List",
+  "settings": [
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Number of products to show",
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Number of columns on Desktop",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "Pagination type",
+      "options": [
+        { "value": "paginated", "label": "Paginated" },
+        { "value": "loadmore", "label": "Load more button" }
+      ],
+      "default": "paginated"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filter",
+      "label": "Enable filter",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sort",
+      "label": "Enable sort",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filter_count",
+      "label": "Show filter values count",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

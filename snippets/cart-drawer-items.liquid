@@ -1,0 +1,62 @@
+{% for item in cart.items %}
+  <div class="cart-item {% if settings.cart_type == 'drawer' %}flex gap-4 border-b{% if settings.layout_style == 'detached' %} pb-4{% endif %}{% else %} flex border gap-4{% if settings.layout_style == 'detached' %} p-4 {% else %} p-4 md:p-10{% endif %}{% endif %}" data-key="{{ item.key }}">
+    {% if item.image %}
+      <a href="{{ item.url }}" class="cart-item__link" tabindex="-1" aria-hidden="true">
+      <img class="cart-item__image object-cover object-center {% if settings.layout_style == 'detached' %}w-16 h-20 {% else %}w-20 h-28 {% endif %}" src="{{ item.image | image_url: width: 300 }}"
+        alt="{{ item.image.alt | escape }}" loading="lazy" width="150"
+        height="{{ 150 | divided_by: item.image.aspect_ratio | ceil }}">
+      </a>
+    {% endif %}
+    <div class="cart-item-details justify-start md:justify-center py-3{% if settings.layout_style == 'attached' %} pr-6{% endif %}">
+      <div class="flex flex-row justify-between items-center w-full">
+        <a href="{{ item.url }}" class="cart-item__name font-semibold break text-black w-8/12"
+          aria-label="View Product details for {{ item.product.title | escape }}">
+          {{ item.product.title | escape }}
+        </a>
+        <div class="cart-item-price w-4/12">
+          {% if item.original_price != item.final_price %}
+            <div class="cart-item__discounted-prices">
+              <p class="cart-item__old-price product-option">{{ item.original_price | money }}</p>
+              <strong class="cart-item__final-price product-option">{{ item.final_price | money }}</strong>
+            </div>
+          {% else %}
+            <p class="product-option">{{ item.original_price | money }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% assign custom_options = item.options_with_values | reject: "value", "Default Title" %}
+      {% if custom_options.size > 0 %}
+        <span class="my-0 product-variant text-xs font-semibold" style="color: #727471; letter-spacing: 0.48px;">
+          {{ item.options_with_values | map: 'value' | join: ' / ' }}
+        </span>
+      {% endif %}
+      <div class="cart-quantity-control flex flex-row justify-between">
+        <div class="cartQuantity justify-between font-bold quantity-small">
+          <button class="decreaseQuantity border-none bg-transparent" aria-label="Decrease Quantity">
+            <span class="svg-wrapper">
+              {{ 'icon-minus.svg' | inline_asset_content }}
+            </span>
+          </button>
+          <span class="quantityAmount">
+            <span class="quantityText">{{ item.quantity }}</span>
+            <span class="quantityLoader hidden">
+              <svg class="animate-spin h-4 w-4 text-gray-600" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </span>
+          <button class="increaseQuantity border-none bg-transparent" aria-label="Increase Quantity">
+            <span class="svg-wrapper">
+              {{ 'icon-plus.svg' | inline_asset_content }}
+            </span>
+          </button>
+        </div>
+        <button type="button" class="cart-remove-button border-none bg-transparent" aria-label="Remove Cart Item">
+          <span class="svg-wrapper">
+            {{ 'remove-icon.svg' | inline_asset_content }}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+{% endfor %}

@@ -1,0 +1,61 @@
+<div id="customer-reviews-widget"></div>
+
+<script>
+(function() {
+  function loadCustomerReviewsWidgetScript(callback) {
+    if (window.CustomerReviewsWidgetLoaded) {
+      if (callback) callback();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = '{{ "customer-reviews.js" | asset_url }}';
+    script.defer = true;
+    script.onload = function() {
+      window.CustomerReviewsWidgetLoaded = true;
+      if (callback) callback();
+    };
+    document.head.appendChild(script);
+  }
+
+  function initWidget() {
+    if (typeof window.loadCustomerReviews === 'function') {
+      window.loadCustomerReviews();
+    }
+  }
+
+  // Shopify section rendering event (works in theme editor)
+  document.addEventListener('shopify:section:load', function(e) {
+    if (e.target && e.target.querySelector('#customer-reviews-widget')) {
+      loadCustomerReviewsWidgetScript(initWidget);
+    }
+  });
+
+  // Also run on DOMContentLoaded (for normal page loads)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      loadCustomerReviewsWidgetScript(initWidget);
+    });
+  } else {
+    loadCustomerReviewsWidgetScript(initWidget);
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Customer Reviews Widget",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Widget Title",
+      "default": "Customer Reviews"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Customer Reviews Widget"
+    }
+  ]
+}
+{% endschema %} 

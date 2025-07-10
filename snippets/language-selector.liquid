@@ -1,0 +1,25 @@
+<form id="language_form">
+  <label for="language-selector" class="visually-hidden">Choose an option:</label> 
+  <select id="language-selector">
+    {% for locale in localization.available_languages %}
+      <option value="{{ locale.iso_code }}" {% if locale.iso_code == localization.language.iso_code %}selected{% endif %}>
+        {{ locale.endonym_name }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+<script>
+  var locales = {
+    {% for locale in localization.available_languages %}
+      "{{ locale.iso_code }}": "{{ locale.root_url }}"{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  };
+
+  document.getElementById('language-selector').addEventListener('change', function() {
+    var selectedLocale = this.value;
+    if (locales[selectedLocale]) {
+      window.location.href = locales[selectedLocale];
+    }
+  });
+</script>

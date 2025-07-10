@@ -1,0 +1,248 @@
+<!doctype html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>{{ page_title }}</title>
+      {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url }}">
+      {%- endif -%}
+      
+      <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+      <link rel="canonical" href="{{ canonical_url }}">
+      <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+      
+      <meta name="title" content="{{ shop.name }}">
+      
+      {% if product %}
+        <meta name="description" content="{{ product.description | strip_html | truncate: 150 }}">
+      {% elsif collection %}
+        <meta name="description" content="{{ collection.description | strip_html | truncate: 150 }}">
+      {% elsif article %}
+        <meta name="description" content="{{ article.excerpt_or_content | strip_html | truncate: 150 }}">
+      {% else %}
+        <meta name="description" content="{{ page_description | escape }}">
+      {% endif %}
+  
+      <meta property="og:site_name" content="{{ shop.name }}">
+      <meta property="og:title" content="{{ page_title }}">
+      <meta property="og:description" content="{{ page_description | escape }}">
+      <meta property="og:url" content="{{ canonical_url }}">
+      
+      {% if product.featured_image %}
+        <meta property="og:image" content="{{ product.featured_image | img_url: 'large' }}">
+      {% elsif collection.image %}
+        <meta property="og:image" content="{{ collection.image | img_url: 'large' }}">
+      {% elsif article.image %}
+        <meta property="og:image" content="{{ article.image | img_url: 'large' }}">
+      {% else %}
+        <meta property="og:image" content="{{ settings.logo | img_url }}">
+      {% endif %}
+    
+      <!-- Twitter Card -->
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content="{{ page_title }}">
+      <meta name="twitter:title" content="{{ page_title }}">
+      <meta name="twitter:description" content="{{ page_description | escape }}">
+      {{ content_for_header }}
+      {% style %}
+        {{ settings.heading_font_family | font_face: font_display: 'swap' }}
+        {{ settings.subheading_font_family | font_face: font_display: 'swap' }}
+        {{ settings.paragraph_font_family | font_face: font_display: 'swap' }}
+        {{ settings.accent_font_family | font_face: font_display: 'swap' }}
+        {{ settings.navigation_font_family | font_face: font_display: 'swap' }}
+        {{ settings.button_font_family | font_face: font_display: 'swap' }}
+        :root {
+          --page-layout: {{ settings.layout_type }};
+          --page-width: {% if settings.layout_type == 'contained' %} {{ settings.page_width }}px {% endif %} ;
+  
+          --space-between-sections: {{ settings.space_between_sections }}px;
+          --section-padding: {{ settings.section_padding }}px;
+          {% case settings.spacing_between_cards %}
+              {% when "small" %}
+                --spacing-between-cards: 16px;
+              {% when "medium" %}
+                --spacing-between-cards: 24px;
+              {% when "large" %}
+                --spacing-between-cards: 30px;
+          {% endcase %}
+          {% case settings.layout_style %}
+            {% when "detached" %}
+              --gap-between-cards: var(--spacing-between-cards);
+            {% else %}
+              --gap-between-cards: 0px;
+          {% endcase %}
+  
+          {% if settings.heading_default_font %}
+            --heading-font: 'IBM Plex Mono';
+            --heading-font-weight: bold;
+          {% else %}
+          --heading-font: {{ settings.heading_font_family.family }};
+          --heading-font-style: {{ settings.heading_font_family.style }};
+          --heading-font-weight: {{ settings.heading_font_family.weight }};
+          {% endif %}
+          --heading-font-size: {{ settings.heading_font_size }}px;
+          --heading-lineheight: {{ settings.heading_line_height }};
+          --heading-letterspacing: {{ settings.heading_letter_spacing }}px;
+          --heading-text-transform: {{ settings.heading_text_transform }};
+  
+          {% if settings.subheading_default_font %}
+            --subheading-font: 'IBM Plex Mono';
+            --subheading-font-weight: 700;
+          {% else %}
+          --subheading-font: {{ settings.subheading_font_family.family }};
+          --subheading-font-style: {{ settings.subheading_font_family.style }};
+          --subheading-font-weight: {{ settings.subheading_font_family.weight }};
+          {% endif %}
+          --subheading-font-size: {{ settings.subheading_font_size }}px;
+          --subheading-lineheight: {{ settings.subheading_line_height }};
+          --subheading-letterspacing: {{ settings.subheading_letter_spacing }}px;
+          --subheading-text-transform: {{ settings.subheading_text_transform }};
+  
+          {% if settings.paragraph_default_font %}
+            --paragraph-font: 'IBM Plex Mono';
+            --paragraph-font-weight: normal;
+          {% else %}
+          --paragraph-font: {{ settings.paragraph_font_family.family }};
+          --paragraph-font-style: {{ settings.paragraph_font_family.style }};
+          --paragraph-font-weight: {{ settings.paragraph_font_family.weight }};
+          {% endif %}
+          --paragraph-font-size: {{ settings.paragraph_font_size }}px;
+          --paragraph-lineheight: {{ settings.paragraph_line_height }};
+          --paragraph-letterspacing: {{ settings.paragraph_letter_spacing }}px;
+          --paragraph-text-transform: {{ settings.paragraph_text_transform }};
+
+           {% if settings.tagline_default_font %}
+            --tagline-font: 'IBM Plex Mono';
+            --tagline-font-weight: 600;
+          {% else %}
+          --tagline-font: {{ settings.tagline_font_family.family }};
+          --tagline-font-style: {{ settings.tagline_font_family.style }};
+          --tagline-font-weight: {{ settings.tagline_font_family.weight }};
+          {% endif %}
+          --tagline-font-size: {{ settings.tagline_font_size }}px;
+          --tagline-lineheight: {{ settings.tagline_line_height }};
+          --tagline-letterspacing: {{ settings.tagline_letter_spacing }}px;
+          --tagline-text-transform: {{ settings.tagline_text_transform }};
+  
+          {% if settings.accent_default_font %}
+            --accent-font: 'IBM Plex Mono';
+            --accent-font-weight: normal;
+          {% else %}
+          --accent-font: {{ settings.accent_font_family.family }};
+          --accent-font-style: {{ settings.accent_font_family.style }};
+          --accent-font-weight: {{ settings.accent_font_family.weight }};
+          {% endif %}
+          --accent-font-size: {{ settings.accent_font_size }}px;
+          --accent-lineheight: {{ settings.accent_line_height }};
+          --accent-letterspacing: {{ settings.accent_letter_spacing }}px;
+          --accent-text-transform: {{ settings.accent_text_transform }};
+
+          --primary-color: {{ settings.primary }};
+          --secondary-color: {{ settings.secondary }};
+          --tertiary-color: {{ settings.tertiary }};
+          --page-background: {{ settings.page_background }};
+          --heading-color: {{ settings.heading_color }};
+          --subheading-color: {{ settings.subheading_color }};
+          --paragraph-color: {{ settings.paragraph_color }};
+          --tagline-color: {{ settings.tagline_color }};
+          --accent-color: {{ settings.accent_color }};
+
+          --btn-border: {{ settings.btn_border_width }}px {{ settings.btn_border_style }};
+          --btn-border-radius: {{ settings.btn_border_radius }}px;
+          {% if settings.button_default_font %}
+            --btn-font-family: 'IBM Plex Mono';
+            --btn-font-weight: normal;
+          {% else %}
+          --btn-font-family: {{ settings.button_font_family.family }};
+          --btn-font-style: {{ settings.button_font_family.style }};
+          --btn-font-weight: {{ settings.button_font_family.weight }};
+          {% endif %}
+          --btn-font-size: {{ settings.button_font_size }}px;
+          --btn-line-height: {{ settings.button_line_height }};
+          --btn-letter-spacing: {{ settings.button_letter_spacing }}px;
+          --btn-text-transform: {{ settings.button_text_transform }};
+
+          --primary-btn-bg-color : {{settings.primary_btn_bg}};
+          --primary-btn-text-color : {{settings.primary_btn_text}};
+          --primary-btn-border-color : {{settings.primary_btn_border}};
+          --primary-btn-hover-bg-color : {{settings.primary_btn_hover_bg}};
+          --primary-btn-hover-text-color : {{settings.primary_btn_hover_text}};
+          --primary-btn-hover-border-color : {{settings.primary_btn_hover_border}};
+
+          --secondary-btn-bg-color : {{settings.secondary_btn_bg}};
+          --secondary-btn-text-color : {{settings.secondary_btn_text}};
+          --secondary-btn-border-color : {{settings.secondary_btn_border}};
+          --secondary-btn-hover-bg-color : {{settings.secondary_btn_hover_bg}};
+          --secondary-btn-hover-text-color : {{settings.secondary_btn_hover_text}};
+          --secondary-btn-hover-border-color : {{settings.secondary_btn_hover_border}};
+
+          --tertiary-btn-bg-color : {{settings.tertiary_btn_bg}};
+          --tertiary-btn-text-color : {{settings.tertiary_btn_text}};
+          --tertiary-btn-border-color : {{settings.tertiary_btn_border}};
+          --tertiary-btn-hover-bg-color : {{settings.tertiary_btn_hover_bg}};
+          --tertiary-btn-hover-text-color : {{settings.tertiary_btn_hover_text}};
+          --tertiary-btn-hover-border-color : {{settings.tertiary_btn_hover_border}};
+
+          --badge-radius: {{settings.badge_corner_radius}}px;
+          --sold-out-background-color: {{settings.sold_out_bg}};
+          --badge-text-color: {{settings.badge_text_color}};
+          --sale-background-color: {{settings.sale_bg_color}};
+
+          --link-hover-text-color: {{settings.link_text_hover_color}};
+        }
+      {% endstyle %}
+      {{ 'default.css' | asset_url | stylesheet_tag }}
+      {{ 'theme.css' | asset_url | stylesheet_tag }}
+      {{ 'slider.css' | asset_url | stylesheet_tag }}
+      {{ 'accessible-slick-theme.min.css' | asset_url | stylesheet_tag }}
+      <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
+    </head>  
+    <body>
+      <a href="#main-content" class="skip-link">Skip to Main Content</a>
+      {% section 'announcement-bar' %}
+      <header class="header border-b py-3 lg:py-0 ">
+        {% section 'header' %}
+      </header>
+      {%- if settings.cart_type == 'drawer' -%}
+        {%- render 'cart-drawer' -%}
+      {%- endif -%}
+      <main id="main-content" class="flex flex-col" style="gap: var(--space-between-sections);">
+        {{ content_for_layout }}
+        {% render 'quick-view' %}
+      </main>
+      {% if settings.show_double_color %}
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('main section h2, main section h1').forEach(el => {
+            if (el.closest('.richtext')) return;
+            const text = el.textContent.trim();
+            if (!text) return;
+            const parts = text.split(/\s+/, 2);
+            const first = parts[0];
+            const rest = text.slice(first.length);
+            el.innerHTML = `<span class="text-tertiary">${first}</span>${rest}`;
+          });
+        });
+        </script>
+        {% endif %}
+        
+      <footer>
+        {% section 'footer' %}
+      </footer>
+      {% if settings.enable_scroll_to_top %}
+      {% render 'scroll-to-top' %}
+      {% endif %}
+      <script src="{{ 'jquery.min.js' | asset_url }}" defer="defer"></script>
+      <script src="{{ 'slick.min.js' | asset_url }}" defer="defer"></script>
+      <script src="{{ 'vimeo-player.js' | asset_url }}" defer="defer"></script>
+      <script>
+        window.customerId = {{ customer.id | json }};
+      </script>
+      <script>
+        window.layoutStyle = '{{ settings.layout_style }}';
+      </script>
+      <script src="{{ 'wishlist.js' | asset_url }}" defer></script>
+    </body>
+  </html>
+  

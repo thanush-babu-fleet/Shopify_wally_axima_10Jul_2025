@@ -1,0 +1,337 @@
+{{ 'video-slider.css' | asset_url | stylesheet_tag }}
+
+<section class="primary-dots video-slider-section {{ section.settings.layout }}">
+  <div class="video-slider-{{ section.id }} slick-slider !mb-0" aria-label="Video carousel">
+    {% for block in section.blocks %}
+      <div class="video-slide" role="group" aria-label="Slide {{ forloop.index }} of {{ section.blocks.size }}">
+        <div class="video-wrapper relative">
+          <div class="video-overlay"></div>
+          {% if block.settings.video_picker != blank %}
+            {{ block.settings.video_picker |  video_tag: autoplay: false, loop: false, controls: false, playsinline: true }}
+            <div class="play-icon-wrapper" style="background-color: {{ section.settings.playbtn_color }}">
+              <svg class="play-icon" width="48" height="48" fill="#fff" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6V4z" /></svg>
+            </div>
+          {% elsif block.settings.video_url != blank %}
+            {% assign video_url = block.settings.video_url %}
+            {% if video_url contains 'youtube.com/watch' %}
+              {% assign yt_id = video_url | split: 'v=' | last %}
+              {% assign embed_url = 'https://www.youtube.com/embed/' | append: yt_id %}
+            {% elsif video_url contains 'vimeo.com/' %}
+              {% assign vimeo_parts = video_url | split: '/' %}
+              {% assign vimeo_id = vimeo_parts.last %}
+              {% assign embed_url = 'https://player.vimeo.com/video/' | append: vimeo_id %}
+              <iframe
+                width="100%"
+                height="100%"
+                class="vimeo-iframe"
+                src="{{ embed_url }}?autoplay=0&controls=0&muted=0&player_id=vimeo-{{ forloop.index }}"
+                data-vimeo-id="{{ vimeo_id }}"
+                data-player-id="vimeo-{{ forloop.index }}"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                allowfullscreen
+              ></iframe>
+            {% endif %}
+
+            {% if block.settings.video_thumbnail != blank %}
+              <div class="video-fallback clickable-video" id="video-fallback-{{ forloop.index }}" data-video-url="{{ embed_url }}" data-thumbnail="{{ block.settings.video_thumbnail | image_url: width: 1600 }}" role="button" tabindex="0" aria-label="Play video">
+                <img src="{{ block.settings.video_thumbnail | image_url: width: 1600 }}" alt="{{ block.settings.video_thumbnail.alt }}" />
+                <div class="play-icon-wrapper" style="background-color: {{ section.settings.playbtn_color }}">
+                  <svg class="play-icon" width="48" height="48" fill="#fff" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6V4z" /></svg>
+                </div>
+              </div>
+            {% else %}
+              <iframe width="100%" height="100%" src="{{ embed_url }}?autoplay=0&controls=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            {% endif %}
+          {% endif %}
+
+          <div class="text-overlay container px-4 left-1/2 -translate-x-1/2 md:p-4">
+            {% if block.settings.badge_text %}
+              <span class="badge uppercase" style="background: {{ section.settings.badge_bg_color }}; color: {{ section.settings.badge_text_color }}">{{ block.settings.badge_text | truncate: 40 }}</span>
+            {% endif %}
+            {% if block.settings.video_heading %}
+              <h2 class="font-bold large" style="color: {{ section.settings.heading_color }}">{{ block.settings.video_heading | truncate: 80 }}</h2>
+            {% endif %}
+            {% if block.settings.video_description %}
+              <div class="video_description pb-7" style="color: {{ section.settings.heading_color }}">{{ block.settings.video_description | truncate: 200 }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+  .video_description p {
+    color: {{ section.settings.heading_color }}
+  }
+</style>
+
+<script src="https://player.vimeo.com/api/player.js"></script>
+
+<script>
+  function pauseAllVideosInSlide(slideElement) {
+    const video = slideElement.querySelector('video');
+    const iframe = slideElement.querySelector('iframe');
+    const fallback = slideElement.querySelector('.clickable-video');
+
+    if (video && !video.paused) {
+      video.pause();
+    }
+
+    if (iframe && fallback) {
+      const embedUrl = fallback.getAttribute('data-video-url');
+      const thumbnail = fallback.getAttribute('data-thumbnail');
+      if (embedUrl && thumbnail) {
+        fallback.innerHTML = `
+          <img src="${thumbnail}" alt="" />
+          <div class="play-icon-wrapper">
+            <svg class="play-icon" width="48" height="48" fill="#fff" viewBox="0 0 20 20"><path d="M6 4l10 6-10 6V4z" /></svg>
+          </div>
+        `;
+      }
+    }
+  }
+
+  function initVideoSlider_{{ section.id | replace: '-', '_' }}() {
+    const slider = $('.video-slider-{{ section.id }}');
+
+    if (slider.hasClass('slick-initialized')) {
+      slider.slick('unslick');
+    }
+
+    slider.slick({
+      arrows: {{ section.settings.show_arrows }},
+      dots: {{ section.settings.show_dots }},
+      autoplay: {{ section.settings.rotate_slides }},
+      autoplaySpeed: 5000,
+      adaptiveHeight: true,
+      prevArrow: '<button type="button" class="slick-prev custom-prev button icon-btn" aria-label="Previous slide"><svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.60455 13.1202C7.87791 12.8468 7.87791 12.4036 7.60455 12.1302L2.47452 7.0002L7.60455 1.87017C7.87791 1.5968 7.87791 1.15359 7.60455 0.88022C7.33118 0.606853 6.88796 0.606853 6.6146 0.88022L0.989596 6.50522C0.716229 6.77859 0.716229 7.2218 0.989596 7.49517L6.6146 13.1202C6.88796 13.3935 7.33118 13.3935 7.60455 13.1202Z" fill="black"/></svg></button>',
+      nextArrow: '<button type="button" class="slick-next custom-next button icon-btn" aria-label="Next slide"><svg width="8" height="14" viewBox="0 0 8 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M0.989205 13.1202C0.715838 12.8468 0.715838 12.4036 0.989205 12.1302L6.11923 7.0002L0.989204 1.87017C0.715837 1.5968 0.715837 1.15359 0.989204 0.88022C1.26257 0.606853 1.70579 0.606853 1.97915 0.88022L7.60415 6.50522C7.87752 6.77859 7.87752 7.2218 7.60415 7.49517L1.97915 13.1202C1.70579 13.3935 1.26257 13.3935 0.989205 13.1202Z" fill="black"/></svg></button>',
+      infinite: true,
+    });
+
+    slider.on('beforeChange', function (event, slick, currentSlide) {
+      const currentSlideElement = slider.find('.slick-slide[data-slick-index="' + currentSlide + '"]')[0];
+      if (currentSlideElement) {
+        pauseAllVideosInSlide(currentSlideElement);
+      }
+    });
+
+    document.querySelectorAll('.video-wrapper').forEach(wrapper => {
+      const video = wrapper.querySelector('video');
+      const playIcon = wrapper.querySelector('.play-icon-wrapper');
+      const textOverlay = wrapper.querySelector('.text-overlay');
+
+    if (video && playIcon) {
+      const toggleVideo = () => {
+        document.querySelectorAll('video').forEach(v => v !== video && v.pause());
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      };
+    
+      playIcon.addEventListener('click', toggleVideo);
+      video.addEventListener('click', toggleVideo);
+      video.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleVideo();
+        }
+      });
+    
+      video.addEventListener('play', () => {
+        playIcon.style.display = 'none';
+        if (textOverlay) textOverlay.style.display = 'none';
+      });
+    
+      video.addEventListener('pause', () => {
+        playIcon.style.display = '';
+        if (textOverlay) textOverlay.style.display = '';
+      });
+    
+      wrapper.addEventListener('click', e => {
+        const isIconOrVideo = e.target === video || playIcon.contains(e.target);
+        if (!isIconOrVideo) {
+          toggleVideo();
+        }
+      });
+    }
+    });
+
+    document.querySelectorAll('.video-slider-{{ section.id }} .clickable-video').forEach(container => {
+      container.addEventListener('click', function () {
+        const embedUrl = this.getAttribute('data-video-url');
+        const iframe = document.createElement('iframe');
+        iframe.src = `${embedUrl}?autoplay=1&controls=0&muted=0`;
+        iframe.setAttribute('width', '100%');
+        iframe.setAttribute('height', '100%');
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('allow', 'autoplay; encrypted-media');
+        this.innerHTML = '';
+        this.appendChild(iframe);
+        const wrapper = this.closest('.video-wrapper');
+        const textOverlay = wrapper?.querySelector('.text-overlay');
+        if (textOverlay) textOverlay.style.display = 'none';
+
+        // Add player instance for Vimeo click toggle
+        if (embedUrl.includes('vimeo.com')) {
+          const player = new Vimeo.Player(iframe);
+          wrapper.addEventListener('click', function () {
+            player.getPaused().then(paused => {
+              if (paused) {
+                player.play();
+              } else {
+                player.pause();
+              }
+            });
+          });
+        }
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initVideoSlider_{{ section.id | replace: '-', '_' }}();
+  });
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initVideoSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initVideoSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+</script>
+           
+{% schema %}
+{
+  "name": "t:sections.videoSlider.name",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.videoSlider.settings.layout",
+      "options": [
+        {
+          "value": "container mx-auto px-4",
+          "label": "Container"
+        },
+        {
+          "value": "w-full",
+          "label": "Full Width"
+        }
+      ],
+      "default": "container mx-auto px-4"
+    },
+    {
+      "type": "checkbox",
+      "id": "rotate_slides",
+      "label": "t:sections.videoSlider.settings.auto_rotate",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "t:sections.videoSlider.settings.show_dots",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "t:sections.videoSlider.settings.show_arrows",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "t:sections.videoSlider.settings.heading_color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "playbtn_color",
+      "label": "t:sections.videoSlider.settings.playbtn_color",
+      "default": "#6CF600"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "t:sections.videoSlider.settings.Badge_text_color",
+      "default": "#6CF600"
+    },
+    {
+      "type": "color_background",
+      "id": "badge_bg_color",
+      "label": "t:sections.videoSlider.settings.Badge_bg_color",
+      "default": "#6CF6001A"
+    },
+  ],
+  "blocks": [
+    {
+      "type": "slider",
+      "name": "t:sections.videoSlider.blocks.slider.name",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Hosted Video"
+        },
+        {
+          "type": "video",
+          "id": "video_picker",
+          "label": "t:sections.videoSlider.blocks.slider.settings.video",
+        },
+        {
+          "type": "header",
+          "content": "Video URL"
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "accept": ["youtube", "vimeo"],
+          "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc",
+          "label": "t:sections.videoSlider.blocks.slider.settings.video_url",
+        },
+        {
+          "type": "image_picker",
+          "id": "video_thumbnail",
+          "label": "Thumbnail Image"
+        },
+        {
+          "type": "text",
+          "id": "badge_text",
+          "label": "t:sections.videoSlider.settings.badge_text",
+          "default": "Badge Text"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "video_heading",
+          "label": "t:sections.videoSlider.blocks.slider.settings.heading"
+        },
+        {
+          "type": "richtext",
+          "id": "video_description",
+          "label": "t:sections.videoSlider.blocks.slider.settings.description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.videoSlider.name",
+    }
+  ]
+}
+{% endschema %}

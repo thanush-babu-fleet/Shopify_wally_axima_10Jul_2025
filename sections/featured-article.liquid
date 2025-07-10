@@ -1,0 +1,313 @@
+{{ 'featured-article.css' | asset_url | stylesheet_tag }}
+{% case section.settings.content_alignment %}
+{% when 'left' %}
+  {% assign content_alignment = 'justify-start text-left' %}
+{% when 'right' %}
+  {% assign content_alignment = 'flex-row-reverse text-right' %}
+{% else %}
+  {% assign content_alignment = 'flex-col text-center items-center justify-center' %}
+{% endcase %}
+
+<style>
+  .featured-articles-{{section.id}} {
+    {% if section.settings.background_gradient != '' %}
+      background: {{section.settings.background_gradient}};
+    {% else %}
+      background-color: {{section.settings.bg_color}};
+    {% endif %}
+  }
+</style>
+
+<div class="featured-articles-{{section.id}}">
+  <div class="featured-articles-wrapper pt-10 pb-20 md:pb-32">
+    <div class="featured-articles-header flex justify-between items-center gap-2 mb-6 {{ content_alignment }}">
+      <div class="featured-articles-content{% if settings.layout_style == 'detached' %} container px-4 mx-auto{% endif %}">
+        {% if section.settings.tagline != blank %}
+              <span class="tagline font-semibold">{{ section.settings.tagline }}</span>
+          {% endif %}
+          {% if section.settings.heading != blank %}
+              <h2 class="large{% if section.settings.tagline != blank %} mt-4 {% endif %}">{{ section.settings.heading }}</h2>
+          {% endif %}
+  
+          {% if section.settings.description != blank %}
+              <div class="rte richtext my-4">{{ section.settings.description }}</div>
+          {% endif %}
+      </div>
+    </div>
+  
+    <div class="article-slider-{{ section.id }}{% if settings.layout_style == 'detached' %} slider-column-space{% endif %}">
+      {% for article in section.settings.blog.articles limit: section.settings.post_limit %}
+        {% render 'article-card',
+          article: article,
+          show_author: section.settings.show_author,
+          show_date: section.settings.show_date,
+          badge_bg: section.settings.badge_bg_color,
+          badge_text: section.settings.badge_text_color
+        %}
+      {% endfor %}
+    </div>
+    {% if section.settings.view_all_button and section.settings.blog.url and section.settings.post_limit > section.settings.columns_desktop %}
+        <p class="text-center font-bold underline underline-offset-4 !leading-normal text-xl mt-8">
+          <a href="{{ section.settings.blog.url }}">{{ section.settings.view_all_button_label }}</a>
+        </p>
+  {% endif %}
+  </div>
+</div>
+
+<script>
+  function initArticleSlider_{{ section.id | replace: '-', '_' }}() {
+    const slider = $('.article-slider-{{ section.id }}');
+
+    if (slider.hasClass('slick-initialized')) {
+      slider.slick('unslick');
+    }
+
+    slider.slick({
+      slidesToShow: {{ section.settings.columns_desktop }},
+      slidesToScroll: 1,
+      autoplay: {{ section.settings.rotate_slides }},
+      arrows: {{ section.settings.show_arrows }},
+      dots: {{ section.settings.show_dots }},
+      prevArrow: false,
+      nextArrow: '<button type="button" class="slick-next custom-next button icon-btn" aria-label="Next slide"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" fill="white"/><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" stroke="#273025"/><path d="M20.4434 13.8798C20.7167 13.6065 21.1602 13.6065 21.4336 13.8798L27.0586 19.5048L27.1484 19.6142C27.1654 19.6399 27.1772 19.6681 27.1904 19.6953C27.1962 19.7072 27.2039 19.7182 27.209 19.7304C27.2174 19.7507 27.2221 19.7721 27.2285 19.7929C27.2489 19.8586 27.2637 19.9276 27.2637 19.9999C27.2637 20.0589 27.252 20.1152 27.2383 20.1699C27.2304 20.2013 27.2242 20.2333 27.2119 20.2636C27.2112 20.2654 27.2097 20.2668 27.209 20.2685C27.2063 20.275 27.2021 20.2807 27.1992 20.2871C27.1833 20.3223 27.1656 20.3569 27.1436 20.3896C27.1182 20.4272 27.0905 20.4631 27.0586 20.4951L21.4336 26.1201C21.1603 26.3934 20.7167 26.3932 20.4434 26.1201C20.17 25.8467 20.17 25.4032 20.4434 25.1298L24.873 20.7001H13.4385C13.0519 20.7001 12.7384 20.3865 12.7383 19.9999C12.7383 19.6133 13.0519 19.2998 13.4385 19.2998H24.873L20.4434 14.8701C20.17 14.5967 20.17 14.1532 20.4434 13.8798Z" fill="#273025"/></svg></button>',
+      infinite: true,
+      responsive: [
+        {
+          breakpoint: 1023,
+          settings: {
+            slidesToShow: 3,
+            swipe: {{ section.settings.swipe_mobile }}
+          }
+        },
+        {
+          breakpoint: 768,
+          settings: {
+            slidesToShow: 2,
+            swipe: {{ section.settings.swipe_mobile }}
+          }
+        },
+        {
+          breakpoint: 480,
+          settings: {
+            slidesToShow: 1,
+            swipe: {{ section.settings.swipe_mobile }},
+            centerMode: true,
+            centerPadding: '10% 0 0',
+            infinite: true,
+          }
+        }
+      ]
+    });
+  }
+  function handleContainerWrapper() {
+    {% if settings.layout_style == 'detached' %}
+      const slickList = document.querySelector('.featured-articles-{{section.id}} .slick-list');
+      if (slickList) {
+        const existingWrapper = slickList.parentElement;
+        if (existingWrapper.classList.contains('container-wrapper')) {
+          existingWrapper.replaceWith(slickList);
+        }
+
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.classList.add('container', 'px-4', 'mx-auto', 'container-wrapper');
+
+        slickList.parentNode.insertBefore(wrapperDiv, slickList);
+        wrapperDiv.appendChild(slickList);
+      }
+    {% endif %}
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initArticleSlider_{{ section.id | replace: '-', '_' }}();
+    handleContainerWrapper();
+  });
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initArticleSlider_{{ section.id | replace: '-', '_' }}();
+      handleContainerWrapper();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initArticleSlider_{{ section.id | replace: '-', '_' }}();
+      handleContainerWrapper();
+    }
+  });
+  
+  document.addEventListener('shopify:section:deselect', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      const slider = $('.article-slider-{{ section.id }}');
+      if (slider.hasClass('slick-initialized')) {
+        slider.slick('unslick');
+      }
+    }
+  });
+
+</script>
+
+{% schema %}
+{
+  "name": "Featured Article",
+  "tag": "section",
+  "class": "featured-article",
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "What experts say"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:sections.featuredArticles.settings.heading",
+      "default": "t:sections.featuredArticles.name"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "t:sections.featuredArticles.settings.description"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "t:sections.featuredArticles.settings.alignment",
+      "options": [
+        { "value": "left", "label": "t:sections.featuredArticles.settings.options.left" },
+        { "value": "center", "label": "t:sections.featuredArticles.settings.options.center" },
+        { "value": "right", "label": "t:sections.featuredArticles.settings.options.right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "t:sections.featuredArticles.settings.show_dots",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "t:sections.featuredArticles.settings.show_arrows",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "rotate_slides",
+      "label": "t:sections.featuredArticles.settings.rotate_slide",
+      "default": true
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "t:sections.featuredArticles.settings.blog"
+    },
+    {
+      "type": "range",
+      "id": "post_limit",
+      "label": "t:sections.featuredArticles.settings.post_limit",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "t:sections.featuredArticles.settings.columns_desktop",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "swipe_mobile",
+      "label": "t:sections.featuredArticles.settings.enable_swipe_mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "t:sections.featuredArticles.settings.show_author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "t:sections.featuredArticles.settings.show_date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_read_more",
+      "label": "t:sections.featuredArticles.settings.show_read_more",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "t:sections.featuredArticles.settings.show_badge",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "View All Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "view_all_button",
+      "label": "t:sections.featuredArticles.settings.view_all_button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_button_label",
+      "label": "t:sections.featuredArticles.settings.view_all_button_label",
+      "default": "View All"
+    },
+    {
+      "type": "header",
+      "content": "Color",
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "t:sections.featuredArticles.settings.heading_color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "t:sections.featuredArticles.settings.bg_color",
+      "default": "#ffffff"
+    },
+    {
+        "type": "color_background",
+        "id": "background_gradient",
+        "label": "t:sections.multicolumn.settings.background_gradient",
+        "info": "If gradient is used,then it overrides normal background color"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "t:sections.featuredArticles.settings.badge_text_color",
+      "default": "#2D6105"
+    },
+    {
+      "type": "color_background",
+      "id": "badge_bg_color",
+      "label": "t:sections.featuredArticles.settings.badge_bg_color",
+      "default": "#6CF6001A"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Article",
+      "category": "Custom"
+    }
+  ]
+}
+{% endschema %}

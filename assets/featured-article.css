@@ -1,0 +1,165 @@
+.featured-articles-wrapper {
+  .article-info .button {
+    @media (max-width: 768px) {
+      width: 100%;
+      text-align: center;
+    }
+  }
+  .slick-next {
+      right: 24px;
+    }
+    .slick-track{
+      display:flex;
+      align-items:stretch;
+      
+      .slick-slide{
+          height: auto;
+      }
+      .slick-slide >div:first-child{
+        height:100%;
+        .column{
+          height:100% !important;
+        }
+      }
+    }
+
+  .heading {
+      letter-spacing: 1.2px;
+      @media(min-width: 768px){
+        letter-spacing: 1.92px;
+      }
+  }
+
+  .article-card {
+    cursor: pointer;
+  }
+  
+  .article-card .article-image {
+    overflow: hidden;
+    height: 232px;
+  }
+  
+  .article-card .article-image img {
+    transition: transform 0.4s ease;
+    will-change: transform;
+    height: 100%;
+    width: 100%;
+  }
+  
+  .article-card:hover .article-image img {
+    transform: scale(1.05);
+  }
+
+  .article-slider {
+    display: flex;
+    gap: 24px;
+  }
+
+  .slick-dots {
+    @media(max-width: 768px){
+      bottom: -35px;
+    }
+  }
+
+  .article-slider-{{ section.id }} .slick-slide {
+    display: flex !important;
+    height: auto;
+    box-sizing: border-box;
+    padding-bottom: 1rem;
+  }
+
+  .article-slider-{{ section.id }} {
+    margin: 0 -12px;
+  }
+
+  @media (max-width: 768px) {
+    .article-slider-{{ section.id }} {
+      margin-left: -15px;
+      margin-right: -15px;
+    }
+  }
+}
+
+.featured-articles-content .rte {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1rem;
+  max-width: 700px;
+}
+
+.featured-articles-grid {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.columns-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.columns-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.columns-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.columns-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+.columns-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.article-card {
+  overflow: hidden;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.article-meta img {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.article-description {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 1.25rem;
+  flex-grow: 1;
+}
+
+.article-card .read-more-btn {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  background-color: #000;
+  color: #fff;
+}
+
+.read-more-btn svg {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.view-all-wrapper {
+  margin-top: 2rem;
+  text-align: right;
+}

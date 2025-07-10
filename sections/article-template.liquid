@@ -1,0 +1,305 @@
+<div class="article">
+    <div class="{% if settings.layout_style == 'detached' %}container px-4 mx-auto py-8 md:py-10 md:mb-10 card-space {% endif %}blogSection flex flex-col lg:flex-row justify-between">
+        <div class="lg:w-3/4">
+            {%- for block in section.blocks -%}
+                {%- case block.type -%}
+                    {%- when '@app' -%}
+                        <div class="page-width page-width--narrow">
+                        {% render block %}
+                        </div>
+                    {%- when 'title' -%}
+                        <div class="mb-4" {{ block.shopify_attributes }}>
+                            {% if article.image %}
+                              <div class="article_banner relative overflow-hidden">
+                              {{ article.image | image_url: width: '1440' | image_tag:
+                                class: 'w-full h-full object-cover min-h-[500px] max-h-[540px]',
+                                alt: article.title,
+                                preload: true
+                              }}
+                                <div class="w-full h-full absolute top-0 left-0 flex items-end p-6 lg:p-10" style="background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%);">
+                                  <div class="w-full">
+                                      {% for tag in article.tags %}
+                                          <a class="badge px-2.5 py-1 text-xs font-medium !leading-normal uppercase" href="{{ blog.url }}/tagged/{{ tag | handle }}" style="color:{{ section.settings.badge_text_color }}; background-color: {{ section.settings.badge_bg_color }}">{{ tag }}</a>{% unless forloop.last %} {% endunless %}
+                                      {% endfor %}
+                                      <h1 class="text-white md:text-[40px] font-semibold normal-case md:leading-normal my-2">{{ article.title }}</h1>
+                                      <div class="flex flex-wrap flex-col sm:flex-row justify-between w-full gap-6">
+                                          <div class="meta flex flex-wrap gap-2 items-center text-white max-sm:order-2">
+                                              {% if block.settings.show_author %}
+                                                  {% assign profile_img = article.metafields.custom.profile %}
+                                                  {% assign author_name = article.metafields.custom.author_name %}
+                                                  {% assign designation = article.metafields.custom.designation %}
+                                                  {% if profile_img != blank %}
+                                                      <div class="border-2 border-white rounded-full w-8 h-8 overflow-hidden">
+                                                      {{ profile_img | image_url: width: 32 | image_tag: 
+                                                          class: 'w-full h-full rounded-full object-cover',
+                                                          alt: article.author,
+                                                          preload: true 
+                                                      }}
+                                                      </div>
+                                                  {% endif %}
+                                                  <div>
+                                                      <p class="text-sm text-white"><strong>{% if author_name %}{{ author_name }}{% else %}{{ article.author }}{% endif %}</strong>{% if designation %}, {{ designation }} {% endif %}</p>
+                                                      {% if block.settings.show_date %}<p class="text-sm text-white">{{ article.published_at | date: "%b %d, %Y" }}</p>{% endif %}
+                                                  </div>
+                                              {%  else %}
+                                                  {% if block.settings.show_date %}
+                                                      <p class="text-sm">{{ article.published_at | date: "%b %d, %Y" }}</p>
+                                                  {% endif %}
+                                              {% endif %}
+                                          </div>
+                                          {% if block.settings.enable_share %}
+                                          <div class="article-share flex items-center gap-4">
+                                              <a aria-label="Linkedin" class="text-white max-sm:w-10 max-sm:h-10 max-sm:bg-[#FFFFFF29] rounded-full flex items-center justify-center"
+                                                  href="https://www.linkedin.com/sharing/share-offsite/?url={{ shop.url }}{{ article.url | url_escape }}"
+                                                  target="_blank">
+                                                  {{ 'icon-linkedin-without-bg.svg' | inline_asset_content }}
+                                              </a>
+                                              
+                                              <a aria-label="Facebook" class="text-white max-sm:w-10 max-sm:h-10 max-sm:bg-[#FFFFFF29] rounded-full flex items-center justify-center"
+                                                  href="https://www.facebook.com/sharer/sharer.php?u={{ shop.url }}{{ article.url | url_escape }}"
+                                                  target="_blank">
+                                                  <span class="svg-wrapper">
+                                                  {{ 'icon-facebook-without-bg.svg' | inline_asset_content }}
+                                                  </span>
+                                              </a>
+                                              
+                                              <a aria-label="Twitter" class="text-white max-sm:w-10 max-sm:h-10 max-sm:bg-[#FFFFFF29] rounded-full flex items-center justify-center"
+                                                  href="https://twitter.com/intent/tweet?text={{ article.title | url_escape }}&url={{ shop.url }}{{ article.url | url_escape }}"
+                                                  target="_blank">
+                                                  <span class="svg-wrapper">
+                                                  {{ 'icon-x-without-bg.svg' | inline_asset_content }}
+                                                  </span>
+                                              </a>
+                   
+                                          </div>
+                                          {% endif %}
+                                      </div>
+                                  </div>
+                                </div>
+                              </div>
+                            {% endif %}
+                        </div>
+                    {%- when 'content' -%}
+                        <div {{ block.shopify_attributes }}>
+                            <div class="block lg:hidden my-5 sticky top-0 bg-white z-10">
+                                <button id="toggleToc" class="w-full flex justify-between items-center p-3 border border-black transition-colors rounded-xl">
+                                    <span id="selectedTopic" class="text-left">Table of contents</span>
+                                    <svg id="arrowIcon" width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path id="arrowPath" d="M9.00392 10C9.20693 10 9.39591 9.96803 9.57085 9.90409C9.74578 9.84015 9.91216 9.73054 10.07 9.57525L17.6418 2.11127C17.8749 1.88126 17.9942 1.59214 17.9998 1.24393C18.0052 0.895994 17.8858 0.601619 17.6418 0.360806C17.3975 0.120269 17.1016 0 16.7539 0C16.4063 0 16.1103 0.120269 15.866 0.360806L9.00392 7.1256L2.14179 0.360806C1.90844 0.131064 1.61515 0.0134248 1.26191 0.00788883C0.908943 0.00262968 0.610313 0.120269 0.36602 0.360806C0.122007 0.601619 0 0.893365 0 1.23604C0 1.57871 0.122007 1.87046 0.36602 2.11127L7.93787 9.57525C8.09568 9.73054 8.26205 9.84015 8.43699 9.90409C8.61192 9.96803 8.8009 10 9.00392 10Z" fill="black" />
+                                    </svg>
+                                </button>
+                                <div id="mobileTocDropdown" class="hidden mt-2 border border-black rounded-xl bg-white overflow-hidden">
+                                  <ul id="mobileSidebar" class="max-h-60 overflow-y-auto"></ul>
+                                </div>
+                              </div>                              
+                            <div id="content" class="blog_content py-10 {% if settings.layout_style == 'attached' %} max-md:px-4 max-lg:px-10 lg:pl-20 {% else %} mb-10 lg:pr-10{% endif %}">
+                            {{ article.content }}
+                            </div>
+                        </div>
+                {%- endcase -%}
+            {%- endfor -%}
+        </div>
+        <div class="hidden lg:block lg:w-1/4 sticky top-0 h-max">
+            <div class="toc-wrapper relative" id="tableContent">
+                <div class="tocDiv fading-border hidden lg:block h-fit">
+                    <div class="fading-border-inner border">
+                        <h3 class="px-2 sm:px-4 py-2 uppercase text-sm toc-heading">Table of contents</h3>
+                        <div id="sidebar" class="overflow-x-hidden overflow-y-auto max-h-screeen"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+  #sidebar ul {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+</style>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const tocWrapper = document.querySelector(".toc-wrapper").parentElement;
+    const stickyHeader = document.querySelector(".header");
+    const mobileSticky = document.querySelector(".block.lg\\:hidden.sticky");
+    const articleBanner = document.querySelector(".article_banner");
+    const tocDiv = document.querySelector(".fading-border-inner");
+    const tocHeading = document.querySelector(".toc-heading");
+
+    if (stickyHeader && tocWrapper) {
+      const headerHeight = stickyHeader.offsetHeight;
+      tocWrapper.style.top = `${headerHeight}px`;
+    }
+    if (mobileSticky && stickyHeader) {
+      const headerHeight = stickyHeader.offsetHeight;
+      mobileSticky.style.top = `${headerHeight}px`;
+    }
+
+    // Set table of contents height based on article banner
+    if (articleBanner && tocDiv) {
+      const bannerHeight = articleBanner.offsetHeight;
+      tocDiv.style.minHeight = `${bannerHeight}px`;
+    }
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const content = document.querySelector("#content");
+    const headings = content.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    const tocContainer = document.querySelector("#sidebar");
+    const mobileTocDropdown = document.getElementById("mobileTocDropdown");
+    const mobileSidebar = document.getElementById("mobileSidebar");
+    const toggleToc = document.getElementById("toggleToc");
+    const tocDiv = document.querySelector(".tocDiv");
+    const tocHeading = document.querySelector(".toc-heading");
+  
+    if (headings.length) {
+      const tocList = document.createElement("ul");
+      headings.forEach((heading, index) => {
+        const id = `section-${index}`;
+        heading.setAttribute("id", id);
+        const a = document.createElement("a");
+        a.href = `#${id}`;
+        a.className = "text-base flex items-center sm:p-4 p-2 transition-colors hover:bg-secondary hover:font-semibold";
+        a.textContent = heading.textContent;
+        const li = document.createElement("li");
+        li.appendChild(a);
+        tocList.appendChild(li);
+        const mobileA = a.cloneNode(true);
+        const mobileLi = document.createElement("li");
+        mobileLi.appendChild(mobileA);
+        mobileSidebar.appendChild(mobileLi);
+      });
+      tocContainer.appendChild(tocList);
+  
+      const tocLinks = tocContainer.querySelectorAll("a");
+      const mobileLinks = mobileSidebar.querySelectorAll("a");
+  
+      function activateCurrentSection() {
+        let current = null;
+        let scrollPosition = window.scrollY + window.innerHeight;
+        let documentHeight = document.documentElement.scrollHeight;
+  
+        if (scrollPosition >= documentHeight - 5) {
+          current = headings[headings.length - 1];
+        } else {
+          for (let i = headings.length - 1; i >= 0; i--) {
+            const rect = headings[i].getBoundingClientRect();
+            if (rect.top <= 100) {
+              current = headings[i];
+              break;
+            }
+          }
+          if (!current) current = headings[0];
+        }
+  
+        const allLinks = [...tocLinks, ...mobileLinks];
+  
+        allLinks.forEach((link) => {
+          link.classList.remove("bg-secondary", "!font-semibold");
+          if (current && link.getAttribute("href") === `#${current.id}`) {
+            link.classList.add("bg-secondary", "!font-semibold");
+            document.getElementById("selectedTopic").textContent = current.textContent;
+          }
+        });
+      }
+  
+      function smoothScrollToTarget(event) {
+        event.preventDefault();
+        const targetId = event.currentTarget.getAttribute("href").substring(1);
+        const target = document.getElementById(targetId);
+        if (target) {
+          const stickyHeader = document.querySelector(".sticky-header");
+          const headerHeight = stickyHeader ? (stickyHeader.offsetHeight + 15) : 15;
+          window.scrollTo({
+            top: target.offsetTop - headerHeight,
+            behavior: "smooth"
+          });
+          mobileTocDropdown.classList.add("hidden");
+        }
+      }
+  
+      // Toggle mobile TOC dropdown
+      toggleToc.addEventListener("click", () => {
+        mobileTocDropdown.classList.toggle("hidden");
+      });
+  
+      // Add smooth scroll to both desktop and mobile links
+      document.querySelectorAll("#sidebar a, #mobileSidebar a").forEach((link) => {
+        link.addEventListener("click", smoothScrollToTarget);
+      });
+  
+      window.addEventListener("scroll", activateCurrentSection);
+      activateCurrentSection();
+    } else {
+      // Hide table of contents if no headings
+      if (tocDiv) {
+        tocDiv.style.display = 'none';
+      }
+      if (toggleToc) {
+        toggleToc.style.display = 'none';
+      }
+    }
+  });
+</script>    
+  
+  
+{% schema %}
+{
+  "name": "Blog Post",
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "title",
+      "name": "Banner",
+      "limit": 1,
+      "settings": [
+        {
+            "type": "checkbox",
+            "id": "show_author",
+            "label": "Show Author",
+            "default": true
+        },
+        {
+            "type": "checkbox",
+            "id": "show_date",
+            "label": "Show Date",
+            "default": true
+        },
+        {
+            "type": "checkbox",
+            "id": "enable_share",
+            "label": "Enable share",
+            "default": true
+        },
+      ]
+    },
+    {
+      "type": "content",
+      "name": "Content",
+      "limit": 1
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Color",
+    },
+     {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "t:sections.featuredArticles.settings.badge_text_color",
+      "default": "#273025"
+    },
+    {
+      "type": "color_background",
+      "id": "badge_bg_color",
+      "label": "t:sections.featuredArticles.settings.badge_bg_color",
+      "default": "#EEF1EC"
+    }
+  ]
+}
+{% endschema %}

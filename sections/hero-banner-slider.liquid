@@ -1,0 +1,640 @@
+{% style %}  
+.hero-slider-{{ section.id }}{
+  .slick-active .slick-dot-icon:before {
+    background: {{settings.secondary}} !important;
+    font-size: 0px !important;
+  }
+  .slick-dot-icon:before, .slick-dot-icon:after {
+    background: #ffffff !important;
+    font-size: 0px !important;
+  }
+  .buttons a {
+    width: 100%;
+  }
+  .slide {
+    position: relative;
+  }
+  .slick-track {
+      .slick-slide {
+          height: fit-content;
+      }
+  }
+  .banner--small {
+    min-height: 28rem;
+    max-height: 28rem;
+  }
+
+  .banner--medium {
+    min-height: 34rem;
+    max-height: 34rem;
+  }
+
+  .banner--large {
+    min-height: 39rem;
+    max-height: 39rem;
+  }
+  
+  .slide::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+  {% if section.settings.slider_type=="full" %}
+    .slick-track{
+      column-gap:0rem !important;
+    }
+    .slide{
+      height:auto !important;
+    }
+  {% endif %}
+  .text-tertiary{
+    color:inherit !important;
+  }
+  .slick-dots {
+    position: relative;
+    bottom: auto !important;
+    left: auto;
+    transform: none;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+  }
+
+  .content-heading-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 60px;
+  }
+
+  .slider-content {
+    position: relative;
+    }
+}
+
+@media (max-width: 767px) {
+  .hero-slider-{{ section.id }} .slider-content-container {
+    position: relative;
+    bottom: auto;
+    z-index: 10;
+  }
+  .hero-slider-{{ section.id }} .banner--small,
+  .hero-slider-{{ section.id }} .banner--medium,
+  .hero-slider-{{ section.id }} .banner--large {
+    
+    max-height: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .side-by-side .slider-content-container,
+  .side-by-side .image-container {
+    height: 100%;
+  }
+}
+
+{% endstyle %}
+
+<section class="hero-slider-section primary-dots{% if settings.layout_style == 'detached' %} container px-4 mx-auto max-md:border py-5 md:py-10{% endif %}" aria-label=" {% if section.settings.accessibility_text %} {{ section.settings.accessibility_text }} {% else %} This is a Slider {% endif %}">
+  <div
+    class="hero-slider-{{ section.id }} arrows-bottom-center"
+    data-autoplay="{{ section.settings.auto_rotate }}"
+    data-autoplay-speed="3000"
+    data-dots="{{ section.settings.show_dots }}"
+    data-arrows="{{ section.settings.show_arrows }}"
+    data-fade="true"
+    data-arrow-position="{{ section.settings.arrow_position }}"
+  >
+    {% for block in section.blocks %}
+      <div class="slide slide-{{ forloop.index }} banner--{{ section.settings.slide_height }} {% if section.settings.slider_type == 'side_by_side' %}!flex flex-col md:flex-row items-stretch{% endif %}"  {{ block.shopify_attributes }}>
+        {% if section.settings.slider_type == 'side_by_side' %}
+          <div class="slider-content-container w-full md:!w-4/12 flex items-center justify-center bg-white z-10 text-center order-2 md:order-1">
+            <div class="slider-content flex flex-col gap-6 justify-between min-w-full md:min-w-3/5 lg:min-w-[45%] {% if section.settings.slider_type=="full" %} max-w-full md:max-w-[60%] lg:max-w-[60%] {% endif %} inline-block {% if block.settings.content_alignment=="left" %} text-start {% elsif block.settings.content_alignment=="center" %} text-center {% else %} text-end {% endif %} "
+                {% if block.settings.enable_container %}
+                style="background: {{ block.settings.container_bg }}; backdrop-filter: blur(4px)"
+                {% endif %}
+                >
+              {% if block.settings.badge1  or  block.settings.badge2%}
+                <div class="flex px-10 pt-10 {% if block.settings.content_alignment=="left" %} justify-start {% elsif block.settings.content_alignment=="center" %} justify-center {% else %} justify-end {% endif %}gap-2 flex-wrap">
+                  {% if block.settings.badge1!=blank %}
+                    <p class=" px-2.5 py-1.5 text-xs font-medium tracking-wider"
+                      style="background: {{ block.settings.badge_bg_color }}; color: {{ block.settings.badge_text_color }}; line-height:1.5;">
+                      {{ block.settings.badge1 }}
+                    </p>
+                  {% endif %}
+                  {% if block.settings.badge2!=blank %}
+                    <p class=" px-2.5 py-1.5 text-xs font-medium tracking-wider"
+                      style="background: {{ block.settings.badge_bg_color }}; color: {{ block.settings.badge_text_color }}; line-height:1.5;">
+                      {{ block.settings.badge2 }}
+                    </p>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              {% if block.settings.heading or block.settings.description %}
+                <div class="content overflow-auto flex flex-col gap-6 px-10">                
+                  {% if block.settings.heading %}
+                    <div class="content-heading-wrapper">
+                      <h1 class="font-bold text-[40px] text-wrap" style="color: {{ block.settings.heading_color }};">
+                      {{ block.settings.heading }}
+                    </h1>
+                    </div>
+                  {% endif %}
+      
+                  {% if block.settings.description %}
+                    <div class="description text-base richtext" style="color: {{ block.settings.description_color }};" >
+                      {{ block.settings.description }}
+                    </div>
+                  {% endif %}
+
+                </div>
+              {% endif %}
+        
+              {% if block.settings.button1_label %}
+                <div class="buttons w-full {% if settings.layout_style == 'detached' %}pb-10 px-10{% endif %} flex flex-wrap gap-2 {% if block.settings.content_alignment=="left" %} justify-start {% elsif block.settings.content_alignment=="center" %} justify-center {% else %} justify-end {% endif %}">
+                  {% if block.settings.button1_label and block.settings.button1_link %}
+                    {% if block.settings.button1_icon_default %}
+                      {% render 'button', button_text: block.settings.button1_label, button_url: block.settings.button1_link, button_type: block.settings.button1_type, button_newtab: block.settings.button1_new_tab, show_arrow: block.settings.button1_icon_default, %}
+                    {% else %}
+                      {% render 'button', button_text: block.settings.button1_label, button_url: block.settings.button1_link, button_type: block.settings.button1_type, button_newtab: block.settings.button1_new_tab, button_icon: block.settings.button1_icon %}
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="image-container w-full md:w-8/12 flex items-center justify-center order-1 md:order-2">
+            {% if block.settings.image %}
+              <img
+                src="{{ block.settings.image | image_url: width: 1600 }}"
+                alt="{{ block.settings.heading | escape }}"
+                class="heroImage w-full object-cover banner--{{ section.settings.slide_height }}"
+                loading="lazy"
+              >
+            {% endif %}
+          </div>
+        {% else %}
+          {% if block.settings.image %}
+            <img
+              src="{{ block.settings.image | image_url: width: 1600 }}"
+              alt="{{ block.settings.heading | escape }}"
+              class="heroImage w-full object-cover banner--{{ section.settings.slide_height }}"
+              loading="lazy"
+            >
+          {% endif %}
+          <div class="slider-content-container flex items-center justify-center max-md:bg-white mx-auto absolute {% if settings.layout_style == 'detached' %}bottom-10 {% else %} bottom-0 {% endif %} z-10 text-center">
+            <div class="slider-content flex flex-col gap-6 min-w-full md:min-w-3/5 lg:min-w-[45%] {% if section.settings.slider_type=="full" %} max-w-full md:max-w-[60%] lg:max-w-[60%] {% endif %} inline-block {% if block.settings.content_alignment=="left" %} text-start {% elsif block.settings.content_alignment=="center" %} text-center {% else %} text-end {% endif %} "
+                {% if block.settings.enable_container %}
+                style="background: {{ block.settings.container_bg }}; backdrop-filter: blur(4px)"
+                {% endif %}
+                >
+              {% if block.settings.badge1  or  block.settings.badge2%}
+                <div class="flex px-10 pt-10 {% if block.settings.content_alignment=="left" %} justify-start {% elsif block.settings.content_alignment=="center" %} justify-center {% else %} justify-end {% endif %}gap-2 flex-wrap">
+                  {% if block.settings.badge1 %}
+                    <p class=" px-2.5 py-1.5 text-xs font-medium tracking-wider"
+                      style="background: {{ block.settings.badge_bg_color }}; color: {{ block.settings.badge_text_color }}; line-height:1.5;">
+                      {{ block.settings.badge1 }}
+                    </p>
+                  {% endif %}
+                  {% if block.settings.badge2 %}
+                    <p class=" px-2.5 py-1.5 text-xs font-medium tracking-wider"
+                      style="background: {{ block.settings.badge_bg_color }}; color: {{ block.settings.badge_text_color }}; line-height:1.5;">
+                      {{ block.settings.badge2 }}
+                    </p>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              {% if block.settings.heading or block.settings.description %}
+                <div class="content overflow-auto flex flex-col gap-6 px-10">                
+                  {% if block.settings.heading %}
+                    <div class="content-heading-wrapper">
+                      <h1 class="font-bold text-[40px] text-wrap" style="color: {{ block.settings.heading_color }};">
+                      {{ block.settings.heading }}
+                    </h1>
+                    </div>
+                  {% endif %}
+      
+                  {% if block.settings.description %}
+                    <div class="description text-base richtext" style="color: {{ block.settings.description_color }};" >
+                      {{ block.settings.description }}
+                    </div>
+                  {% endif %}
+
+                </div>
+              {% endif %}
+        
+              {% if block.settings.button1_label %}
+                <div class="buttons w-full {% if settings.layout_style == 'detached' %}pb-10 px-10{% endif %} flex flex-wrap gap-2 {% if block.settings.content_alignment=="left" %} justify-start {% elsif block.settings.content_alignment=="center" %} justify-center {% else %} justify-end {% endif %}">
+                  {% if block.settings.button1_label and block.settings.button1_link %}
+                    {% if block.settings.button1_icon_default %}
+                      {% render 'button', button_text: block.settings.button1_label, button_url: block.settings.button1_link, button_type: block.settings.button1_type, button_newtab: block.settings.button1_new_tab, show_arrow: block.settings.button1_icon_default, %}
+                    {% else %}
+                      {% render 'button', button_text: block.settings.button1_label, button_url: block.settings.button1_link, button_type: block.settings.button1_type, button_newtab: block.settings.button1_new_tab, button_icon: block.settings.button1_icon %}
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<script>
+    
+function heroSlider_{{ section.id | replace: '-', '_' }}() {
+    $('.hero-slider-{{ section.id }}').slick({
+      {% if section.settings.slider_type == "centered" %}
+        slidesToShow: 1,
+        centerMode: true,
+        centerPadding: '20%',
+        responsive: [
+            {
+              breakpoint: 749,
+              settings: {
+                centerMode: false
+              }
+            }
+          ],
+      {% else %}
+        fade: true,
+      {% endif %}
+        infinite: true,
+        autoplay: $('.hero-slider-{{ section.id }}').data('autoplay'),
+        autoplaySpeed: $('.hero-slider-{{ section.id }}').data('autoplay-speed'),
+        dots: {{ section.settings.show_dots }},
+        arrows: false,
+        adaptiveHeight: false
+    });
+
+    // Only create custom arrows if show_arrows is enabled
+    {% if section.settings.show_arrows %}
+    const prevArrow = document.createElement('button');
+    prevArrow.className = 'slick-prev custom-prev button icon-btn slick-arrow !left-0';
+    prevArrow.setAttribute('aria-label', 'Previous slide');
+    prevArrow.innerHTML = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="-0.5" y="0.5" width="39" height="39" rx="19.5" transform="matrix(-1 0 0 1 39 0)" fill="white"/><rect x="-0.5" y="0.5" width="39" height="39" rx="19.5" transform="matrix(-1 0 0 1 39 0)" stroke="#273025"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18.5667 13.8808C18.8401 13.6074 19.2833 13.6074 19.5567 13.8808C19.8301 14.1542 19.8301 14.5974 19.5567 14.8708L15.1267 19.3008H26.5617C26.9483 19.3008 27.2617 19.6142 27.2617 20.0008C27.2617 20.3874 26.9483 20.7008 26.5617 20.7008H15.1267L19.5567 25.1308C19.8301 25.4042 19.8301 25.8474 19.5567 26.1208C19.2833 26.3941 18.8401 26.3941 18.5667 26.1208L12.9417 20.4958C12.8746 20.4286 12.824 20.3513 12.7898 20.2687C12.7568 20.189 12.738 20.1018 12.7368 20.0104C12.7366 19.996 12.7368 19.9816 12.7375 19.9672C12.7455 19.7994 12.8136 19.6339 12.9417 19.5058L18.5667 13.8808Z" fill="#273025"/></svg>';
+
+    const nextArrow = document.createElement('button');
+    nextArrow.className = 'slick-next custom-next button icon-btn slick-arrow !right-0';
+    nextArrow.setAttribute('aria-label', 'Next slide');
+    nextArrow.innerHTML = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" fill="white"/><rect x="0.5" y="0.5" width="39" height="39" rx="19.5" stroke="#273025"/><path fill-rule="evenodd" clip-rule="evenodd" d="M21.4333 13.8808C21.1599 13.6074 20.7167 13.6074 20.4433 13.8808C20.1699 14.1542 20.1699 14.5974 20.4433 14.8708L24.8733 19.3008H13.4383C13.0517 19.3008 12.7383 19.6142 12.7383 20.0008C12.7383 20.3874 13.0517 20.7008 13.4383 20.7008H24.8733L20.4433 25.1308C20.1699 25.4042 20.1699 25.8474 20.4433 26.1208C20.7167 26.3941 21.1599 26.3941 21.4333 26.1208L27.0583 20.4958C27.1254 20.4286 27.176 20.3513 27.2102 20.2687C27.2432 20.189 27.262 20.1018 27.2632 20.0104C27.2634 19.996 27.2632 19.9816 27.2625 19.9672C27.2545 19.7994 27.1864 19.6339 27.0583 19.5058L21.4333 13.8808Z" fill="#273025"/></svg>';
+    {% endif %}
+
+    function positionElements() {
+      // Remove any existing cloned arrows
+      document.querySelectorAll('.slick-prev, .slick-next').forEach(arrow => {
+        if (arrow.parentElement.classList.contains('content-heading-wrapper')) {
+          arrow.remove();
+        }
+      });
+
+      // Position arrows inside heading container if enabled
+      {% if section.settings.show_arrows %}
+      const headingWrappers = document.querySelectorAll('.content-heading-wrapper');
+      headingWrappers.forEach(wrapper => {
+        if (wrapper) {
+          // Clone arrows for each slide
+          const prevClone = prevArrow.cloneNode(true);
+          const nextClone = nextArrow.cloneNode(true);
+          // Add click handlers to cloned arrows
+          prevClone.addEventListener('click', () => {
+            $('.hero-slider-{{ section.id }}').slick('slickPrev');
+          });
+          nextClone.addEventListener('click', () => {
+            $('.hero-slider-{{ section.id }}').slick('slickNext');
+          });
+          wrapper.appendChild(prevClone);
+          wrapper.appendChild(nextClone);
+        }
+      });
+      {% endif %}
+
+      // Position dots before buttons if enabled
+      {% if section.settings.show_dots %}
+      // Remove all .slick-dots except the first one
+      const allDots = document.querySelectorAll('.hero-slider-{{ section.id }} .slick-dots');
+      if (allDots.length > 1) {
+        for (let i = 1; i < allDots.length; i++) {
+          allDots[i].parentNode && allDots[i].parentNode.removeChild(allDots[i]);
+        }
+      }
+      const slickDots = document.querySelector('.hero-slider-{{ section.id }} .slick-dots');
+      if (slickDots) {
+        // Remove from wherever it is
+        slickDots.parentNode && slickDots.parentNode.removeChild(slickDots);
+
+        // Find the active slide
+        const activeSlide = document.querySelector('.hero-slider-{{ section.id }} .slick-active');
+        if (activeSlide) {
+          const sliderContent = activeSlide.querySelector('.slider-content');
+          const buttonsContainer = activeSlide.querySelector('.buttons');
+          if (sliderContent && buttonsContainer) {
+            sliderContent.insertBefore(slickDots, buttonsContainer);
+          }
+        }
+      }
+      {% endif %}
+    }
+
+    // Initial positioning with a small delay to ensure Slick has created the dots
+    positionElements();
+
+    // Reposition on slide change
+    $('.hero-slider-{{ section.id }}').on('afterChange', function(event, slick, currentSlide) {
+      positionElements();
+    });
+
+    // Reposition dots before slide change
+    $('.hero-slider-{{ section.id }}').on('beforeChange', function(event, slick, currentSlide, nextSlide) {
+      positionElements();
+    });
+
+    // Ensure dots are positioned as soon as Slick initializes
+    $('.hero-slider-{{ section.id }}').on('init', function(event, slick) {
+      positionElements();
+    });
+}
+
+  document.addEventListener('DOMContentLoaded', function () {
+    heroSlider_{{ section.id | replace: '-', '_' }}();
+  });
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      heroSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:resize', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      heroSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      heroSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  function adjustSliderContentContainerWidth() {
+    const heroImage = document.querySelector('.heroImage');
+    if (!heroImage) return;
+  
+    const heroImageWidth = heroImage.offsetWidth;
+  
+    const sliderContentContainers = document.querySelectorAll('.slider-content-container');
+    sliderContentContainers.forEach((sliderContentContainer) => {
+      sliderContentContainer.style.width = `${heroImageWidth}px`;
+    });
+  }
+ 
+  window.addEventListener('load', adjustSliderContentContainerWidth);
+  window.addEventListener('resize', adjustSliderContentContainerWidth);
+  
+  function observeSliderContentChanges() {
+      const slider = document.querySelector('.hero-slider-{{ section.id }}');
+      if (!slider) return;
+    
+      const activeSlide = slider.querySelector('.slick-slide.slick-active');
+      const content = activeSlide?.querySelector('.slider-content-container');
+      if (!content) return;
+    
+      const observer = new MutationObserver(() => {
+        positionSliderArrows();
+      });
+    
+      observer.observe(content, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        characterData: true,
+      });
+    }
+  window.addEventListener('load', positionSliderArrows);
+  document.addEventListener('DOMContentLoaded', () => {
+      const prevArrow = document.querySelector('.hero-slider-{{ section.id }} .slick-prev');
+      const nextArrow = document.querySelector('.hero-slider-{{ section.id }} .slick-next');
+    
+      [prevArrow, nextArrow].forEach(arrow => {
+        if (arrow) {
+          arrow.addEventListener('click', () => {
+            setTimeout(() => {
+              positionSliderArrows();
+              observeSliderContentChanges();
+            }, 100);
+          });
+        }
+      });
+    });
+
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.heroBannerSlider.name",
+  "tag": "section",
+  "max_blocks": 20,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "auto_rotate",
+      "label": "t:sections.heroBannerSlider.settings.auto_rotate",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "slide_height",
+      "label": "t:sections.heroBannerSlider.settings.slide_height",
+      "options": [
+        { "value": "small", "label": "t:sections.heroBannerSlider.options.slide_height.small" },
+        { "value": "medium", "label": "t:sections.heroBannerSlider.options.slide_height.medium" },
+        { "value": "large", "label": "t:sections.heroBannerSlider.options.slide_height.large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "t:sections.heroBannerSlider.settings.show_dots",
+      "info": "t:sections.heroBannerSlider.settings.show_dots_info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "t:sections.heroBannerSlider.settings.show_arrows",
+      "info": "t:sections.heroBannerSlider.settings.show_arrows_info",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "slider_type",
+      "label": "t:sections.heroBannerSlider.settings.slider_type",
+      "options": [
+        { "value": "full", "label": "t:sections.heroBannerSlider.options.slider_type.full" },
+        { "value": "centered", "label": "t:sections.heroBannerSlider.options.slider_type.centered" },
+        { "value": "side_by_side", "label": "Side by Side" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "text",
+      "id": "accessibility_text",
+      "label": "t:sections.heroBannerSlider.settings.accessibility_text"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "t:sections.heroBannerSlider.blocks.slide.name",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Content"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.image"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.heading"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.description"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_container",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.enable_container"
+        },
+        {
+          "type": "header",
+          "content": "Badge 1"
+        },
+        {
+          "type": "text",
+          "id": "badge1",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.badge1"
+        },
+        {
+          "type": "header",
+          "content": "Badge 2"
+        },
+        {
+          "type": "text",
+          "id": "badge2",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.badge2"
+        },
+        {
+          "type": "header",
+          "content": "Button 1"
+        },
+        {
+          "type": "checkbox",
+          "id": "button1_icon_default",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.button1_icon_default",
+          "default":false
+        },
+        {
+          "type": "image_picker",
+          "id": "button1_icon",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.button1_icon"
+        },
+        {
+          "type": "select",
+          "id": "button1_type",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.button1_type",
+          "options": [
+            { "value": "primary", "label": "t:sections.heroBannerSlider.options.button1_type.primary" },
+            { "value": "secondary", "label": "t:sections.heroBannerSlider.options.button1_type.secondary" },
+            { "value": "tertiary", "label": "t:sections.heroBannerSlider.options.button1_type.tertiary" }
+          ],
+          "default": "secondary"
+        },
+        {
+          "type": "text",
+          "id": "button1_label",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.button1_label"
+        },
+        {
+          "type": "url",
+          "id": "button1_link",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.button1_link"
+        },
+        {
+          "type": "checkbox",
+          "id": "button1_new_tab",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.button1_new_tab"
+        },
+        {
+          "type": "header",
+          "content": "Content Alignment"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.content_alignment",
+          "options": [
+            { "value": "left", "label": "t:sections.heroBannerSlider.options.content_alignment.left" },
+            { "value": "center", "label": "t:sections.heroBannerSlider.options.content_alignment.center" },
+            { "value": "right", "label": "t:sections.heroBannerSlider.options.content_alignment.right" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "header",
+          "content": "Styles"
+        },
+        {
+          "type": "color",
+          "id": "heading_color",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.heading_color",
+          "default":"#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "description_color",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.description_color",
+          "default":"#FFFFFF"
+        },
+        {
+          "type": "color_background",
+          "id": "container_bg",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.container_bg",
+        },
+        {
+          "type": "color",
+          "id": "badge_text_color",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.badge_text_color",
+          "default":"#6CF600"
+        },
+        {
+          "type": "color",
+          "id": "badge_bg_color",
+          "label": "t:sections.heroBannerSlider.blocks.slide.settings.badge_bg_color",
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.heroBannerSlider.presets.name",
+      "category": "Media"
+    }
+  ]
+}
+{% endschema %}

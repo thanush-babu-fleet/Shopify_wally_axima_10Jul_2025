@@ -1,0 +1,412 @@
+<section class="custom-product-gallery overflow-hidden" style="background-color: {{ section.settings.bg_color }}">
+  {% assign images = product.images %}
+  {% assign total_images = images.size %}
+  {% assign display_images = images | slice: 0, 5 %}
+
+  {% if total_images < 5 %}
+    {% assign loop_times = 5 | minus: total_images %}
+    {% for i in (1..loop_times) %}
+      {% assign display_images = display_images | concat: images %}
+    {% endfor %}
+    {% assign display_images = display_images | slice: 0, 5 %}
+  {% endif %}
+
+  <div class="product-gallery-grid max-lg:max-w-full {{ section.settings.layout }}">
+    <div class="left-side hidden lg:block">
+      <div class="image-full-gradient-wrapper image-crop-top h-full">
+        <div class="image-full-gradient-inner h-full">
+          {% if display_images[0] %}
+            <img src="{{ display_images[0] | image_url: width: 800 }}" alt="{{ display_images[0].alt }}" aria-hidden="true">
+          {% endif %}
+        </div>
+      </div>
+      <div class="image-full-gradient-wrapper h-full">
+        <div class="image-full-gradient-inner h-full">
+          {% if display_images[1] %}
+            <img src="{{ display_images[1] | image_url: width: 800 }}" alt="{{ display_images[1].alt }}" aria-hidden="true">
+          {% endif %}
+        </div>
+      </div>
+      <div class="image-full-gradient-wrapper image-crop-bottom h-full">
+        <div class="image-full-gradient-inner h-full">
+          {% if display_images[2] %}
+            <img src="{{ display_images[2] | image_url: width: 800 }}" alt="{{ display_images[2].alt }}" aria-hidden="true">
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-side flex flex-col justify-between md:py-20 gap-8">
+      {% if section.settings.accordion_heading != blank %}
+        <h2 class="text-3xl md:text-5xl font-bold mb-4" style="color: {{ section.settings.faq_question }}">{{ section.settings.accordion_heading }}</h2>
+      {% endif %}
+
+      <div id="accordion-{{ section.id }}" class="space-y-4 px-4 md:px-10 md:pt-5">
+        {% for block in section.blocks %}
+          <div class="border-b">
+            <button class="w-full text-left flex justify-between items-center py-2 font-bold subheading" id="toggle-accordion-{{ section.id }}-{{ forloop.index0 }}"
+              aria-expanded="false"
+              data-index="{{ forloop.index0 }}" style="color: {{ section.settings.faq_question }}">
+              {{ block.settings.accordion_item_title }}
+              <svg width="14" height="8" class="transition-transform duration-200 icon-chevron rotate-0" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M1.05854 0.887398C1.33191 0.614031 1.77512 0.614031 2.04849 0.887398L7.17852 6.01742L12.3085 0.887398C12.5819 0.614031 13.0251 0.614031 13.2985 0.887398C13.5719 1.16077 13.5719 1.60398 13.2985 1.87735L7.67349 7.50235C7.40012 7.77571 6.95691 7.77571 6.68354 7.50235L1.05854 1.87735C0.785174 1.60398 0.785174 1.16077 1.05854 0.887398Z" fill="white"/>
+              </svg>
+            </button>
+            <div class="hidden pb-4 text-base accordion_item_description richtext" data-index="{{ forloop.index0 }}" style="color: {{ section.settings.faq_answer }}">
+              {{ block.settings.accordion_item_description }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="mobile-slider-container">
+        <div class="product-mobile-slider-{{ section.id }} slick-slider">
+          {% for image in display_images %}
+            <div class="image-full-gradient-wrapper">
+              <div class="image-full-gradient-inner">
+                <img src="{{ image | image_url: width: 800 }}" alt="{{ image.alt }}" class="w-full h-64 object-cover rounded-[40px]" loading="lazy" />
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if section.settings.quotes != blank %}
+        <div class="accordion-quote richtext [&>p]:text-3xl px-4 md:px-10" style="color: {{ section.settings.faq_quotes }};">
+          {{ section.settings.quotes | rich_text }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="right-side gap-7 lg:pt-10 lg:pb-7 hidden lg:block">
+      <div class="image-full-gradient-wrapper h-full" style="height:calc((100% - 28px) / 2);">
+        <div class="image-full-gradient-inner h-full">
+          {% if display_images[3] %}
+            <img src="{{ display_images[3] | image_url: width: 800 }}" class="h-full" alt="{{ display_images[3].alt }}" aria-hidden="true">
+          {% endif %}
+        </div>
+      </div>
+      <div class="image-full-gradient-wrapper h-full" style="height:calc((100% - 28px) / 2);">
+        <div class="image-full-gradient-inner h-full">
+          {% if display_images[4] %}
+            <img src="{{ display_images[4] | image_url: width: 800 }}" class="h-full" alt="{{ display_images[4].alt }}" aria-hidden="true">
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .mobile-slider-container {
+    display: block;
+
+    @media(min-width: 1025px) {
+      display: none;
+    }
+  }
+
+  .accordion_item_description * {
+    color: {{ section.settings.faq_answer }};
+  }
+
+  .product-mobile-slider-{{ section.id }} .slick-track {
+    display: flex;
+  }
+
+  .product-mobile-slider-{{ section.id }} .slick-center {
+    opacity: 1 !important;
+    position: relative;
+    z-index: 2;
+  }
+
+  .product-mobile-slider-{{ section.id }} .slick-center::after {
+    display: none;
+  }
+
+  .product-mobile-slider-{{ section.id }} .slick-slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.16);
+    border-radius: 40px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .image-full-gradient-wrapper {
+    padding: 2px;
+    border-radius: 40px;
+    background: radial-gradient(48% 76.05% at 2% 2.21%, #59F9F3 0%, #BDF690 100%);
+  }
+
+  .image-full-gradient-inner {
+    border-radius: 40px;
+    background-color: #000;
+    overflow: hidden;
+  }
+
+  .image-full-gradient-inner img {
+    border-radius: 40px;
+    padding: 8px;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-gallery-grid {
+    .accordion-quote p {
+      font-family: {{ settings.accent_font_family.family }},sans-serif;
+      color: {{ section.settings.faq_quotes | default: settings.accent_color }};
+      font-weight: 500;
+      line-height: 150%;
+    }
+
+    .accordion_item_description p {
+      font-weight: 500;
+    }
+  }
+  @media (min-width: 1025px) {
+    .right-side {
+      gap: 28px;
+      padding-top: 40px;
+      padding-bottom: 28px;
+    }
+
+    .image-crop-top {
+      position: relative;
+      top: -8%;
+    }
+
+    .image-crop-bottom {
+      position: relative;
+      bottom: -8%;
+    }
+
+    .image-crop-top::after,
+    .image-crop-bottom::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 1;
+    }
+
+    .rotate-180 {
+      transform: rotate(180deg);
+    }
+
+    .product-gallery-grid {
+      display: flex;
+      gap: 1rem;
+      min-height: 880px;
+    }
+  }
+
+  .border-b {
+    border-color: #273025;
+  }
+
+  .justify-around {
+    justify-content: space-around;
+  }
+
+  .left-side,
+  .right-side {
+    @media(min-width: 1024px) {
+      max-height: 880px;
+      display: flex;
+    }
+
+    @media(max-width: 1024px) {
+      display: none;
+    }
+
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .accordion-side {
+    flex: 2;
+    gap: 2rem;
+
+    @media(max-width: 1024px) {
+      padding-top: 1.25rem;
+      padding-bottom: 2.5rem;
+      gap: 1.5rem;
+    }
+  }
+</style>
+                  
+<script>
+  function initProductMobileSlider_{{ section.id | replace: '-', '_' }}() {
+    const slider = $('.product-mobile-slider-{{ section.id }}');
+
+    if (window.innerWidth < 1025) {
+      if (!slider.hasClass('slick-initialized')) {
+        slider.slick({
+          dots: false,
+          arrows: false,
+          infinite: true,
+          speed: 500,
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          autoplay: true,
+          centerMode: true,
+          centerPadding: "25%"
+        });
+      }
+    } else {
+      if (slider.hasClass('slick-initialized')) {
+        slider.slick('unslick');
+      }
+    }
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function () {
+      clearTimeout(timeout);
+      timeout = setTimeout(func, wait);
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initProductMobileSlider_{{ section.id | replace: '-', '_' }}();
+  });
+
+  document.addEventListener('shopify:section:load', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initProductMobileSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  document.addEventListener('shopify:section:select', function (event) {
+    if (event.detail.sectionId === '{{ section.id }}') {
+      initProductMobileSlider_{{ section.id | replace: '-', '_' }}();
+    }
+  });
+
+  window.addEventListener('resize', debounce(() => {
+    initProductMobileSlider_{{ section.id | replace: '-', '_' }}();
+  }, 200));
+</script>
+              
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    {% for block in section.blocks %}
+      const toggle{{ forloop.index0 }} = document.getElementById('toggle-accordion-{{ section.id }}-{{ forloop.index0 }}');
+      if (toggle{{ forloop.index0 }}) {
+        toggle{{ forloop.index0 }}.addEventListener('click', function () {
+          const index = this.dataset.index;
+          const desc = document.querySelector(`#accordion-{{ section.id }} .accordion_item_description[data-index='${index}']`);
+          const icon = this.querySelector('.icon-chevron');
+
+          const isOpen = !desc.classList.contains('hidden');
+
+          document.querySelectorAll('.accordion_item_description').forEach(el => el.classList.add('hidden'));
+          document.querySelectorAll('.icon-chevron').forEach(icon => icon.classList.remove('rotate-180'));
+
+          if (!isOpen) {
+            desc.classList.remove('hidden');
+            icon.classList.add('rotate-180');
+          }
+        });
+      }
+    {% endfor %}
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Product Accordion Slider",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:global.layout.title",
+      "options": [
+        { "value": "container lg:px-4 lg:mx-auto", "label": "t:global.layout.option_1" },
+        { "value": "w-full", "label": "t:global.layout.option_2" }
+      ],
+      "default": "container lg:px-4 lg:mx-auto"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "accordion_heading",
+      "label": "t:sections.featuredArticles.settings.heading",
+      "default": "Product details"
+    },
+    {
+      "type": "richtext",
+      "id": "quotes",
+      "label": "t:sections.faq.quotes",
+      "default": "<p>Fashion is the art of self-expression—wear your confidence, own your style, and make every outfit a statement.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "t:global.colors.announcement_bar.background_color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "faq_question",
+      "label": "t:sections.faq.question_color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "faq_answer",
+      "label": "t:sections.faq.answer_color",
+      "default": "#C9CCC8"
+    },
+    {
+      "type": "color",
+      "id": "faq_quotes",
+      "label": "t:sections.faq.quotes_color",
+      "default": "#DFE0DE"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "accordion",
+      "name": "Accordion Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "accordion_item_title",
+          "label": "Title",
+          "default": "What is your return policy?"
+        },
+        {
+          "type": "richtext",
+          "id": "accordion_item_description",
+          "label": "Description",
+          "default": "<p>You can return any unwanted item within 30 days of purchase for a full refund.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Accordion Slider",
+      "category": "Custom",
+      "blocks": [
+        { "type": "accordion" },
+        { "type": "accordion" },
+        { "type": "accordion" }
+      ]
+    }
+  ]
+}
+{% endschema %}

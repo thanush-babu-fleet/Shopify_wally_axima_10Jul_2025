@@ -1,0 +1,29 @@
+{%- assign image_to_display = block.settings.image -%}
+{%- if block.settings.show_collection_image and block.settings.collection.featured_image != blank -%}
+  {%- assign image_to_display = block.settings.collection.featured_image -%}
+{%- endif -%}
+
+<a href="collections/{{ block.settings.collection | collection_url }}" class="custom-collection-card h-full group !flex flex-col bg-white overflow-hidden border border-black/10">
+  {% if image_to_display != blank %}
+    <div class="{% if section.settings.columns_desktop == 2 %}h-80 md:h-[30rem] max-h-80 md:max-h-[30rem]{% else %}h-80 md:h-96 max-h-80 md:max-h-96{% endif %} w-full overflow-hidden relative">
+      <img src="{{ image_to_display | image_url: width: 600 }}" alt="{{ block.settings.title | escape }}" class="object-cover object-center w-full h-full  transition-transform duration-500 ease-in-out group-hover:scale-105" loading="lazy">
+      {% if block.settings.collection_desc != blank %}
+        <div class="collection-subtitle absolute w-full px-4 text-center text-white text-3xl top-[120px] left-1/2 transform -translate-x-1/2 z-1 font-medium !leading-normal">
+          {{ block.settings.collection_desc }}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+  <div class="theme flex-grow px-6 py-3 font-semibold text-center transition-all duration-500 ease-in-out flex items-center justify-center group-hover:justify-between group-hover:bg-secondary group-hover:text-black {% if section.settings.bg_color == 'dark' %}bg-primary text-white{% else %}text-black bg-white{% endif %}">
+    {{ block.settings.title }}
+    {% if section.settings.show_icon %}
+      <div class="svg-wrapper m-3">
+        <!-- arrow svg -->
+        <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M9.43326 0.87983C9.15989 0.606463 8.71667 0.606463 8.44331 0.87983C8.16994 1.1532 8.16994 1.59641 8.44331 1.86978L12.8733 6.2998H1.43828C1.05168 6.2998 0.738281 6.61321 0.738281 6.9998C0.738281 7.3864 1.05168 7.6998 1.43828 7.6998H12.8733L8.44331 12.1298C8.16994 12.4032 8.16994 12.8464 8.44331 13.1198C8.71667 13.3931 9.15989 13.3931 9.43326 13.1198L15.0583 7.49478C15.176 7.35031 15.2632 7.10082 15.2632 7.0094C15.2634 6.99501 15.2632 6.98061 15.2625 6.96623C15.2545 6.79843 15.1864 6.63297 15.0583 6.50483L9.43326 0.87983Z" fill="currentColor">
+          </path>
+        </svg>
+      </div>
+    {% endif %}
+  </div>
+</a>

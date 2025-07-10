@@ -1,0 +1,77 @@
+<div id="wishlist-view-{{ product.id }}" class="wishlist-view block">
+  <div class="relative variants-{{ product.id }}" data-variants='{{ product.variants | json | escape }}'>
+    <div class="modal-content max-[340px]:w-80 w-92 max-h-[95vh] overflow-auto bg-white"
+      style="scrollbar-width: none;">
+      <div class="cart-header flex justify-between bg-white items-center py-5 px-4 sticky top-0 z-10">
+        <div class="cart-title">
+          <span class="shopping-cart-icon svg-wrapper">
+            {{ 'wishlist-icon.svg' | inline_asset_content }}
+          </span>
+          <h1 class="text-xl font-semibold">Added to wishlist</h1>
+        </div>
+        <button class="close-modal"
+          aria-label="Quick view close">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="20" fill="black"/>
+          <path d="M25.1308 13.8798C25.4042 13.6065 25.8477 13.6065 26.121 13.8798C26.3942 14.1532 26.3943 14.5968 26.121 14.8701L20.9912 19.9999L26.121 25.1298C26.3942 25.4032 26.3943 25.8468 26.121 26.1201C25.8477 26.3934 25.4042 26.3932 25.1308 26.1201L20.0009 20.9902L14.871 26.1201C14.5977 26.3934 14.1542 26.3932 13.8808 26.1201C13.6074 25.8467 13.6074 25.4032 13.8808 25.1298L19.0107 19.9999L13.8808 14.8701C13.6074 14.5967 13.6074 14.1532 13.8808 13.8798C14.1542 13.6065 14.5977 13.6065 14.871 13.8798L20.0009 19.0097L25.1308 13.8798Z" fill="white"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="wishlist-slide relative border overflow-hidden{% if settings.layout_style == 'detached' %} px-4{% endif %}" role="region" aria-label="carousel">
+        {% for image in product.images %}
+          {{ image | image_url: width: 600 | image_tag: class: 'slide w-full h-auto', alt: image.alt | escape }}
+        {% endfor %}
+      </div>
+      <div class="flex flex-col h-full justify-between">
+      <div class="px-4">
+      <h2 class="text-lg font-bold mt-6">{{ product.title }}</h2>
+
+      <div class="variant-list">
+        <p class="variant-price text-primary font-bold tracking-wider price gap-4"></p>
+      </div>
+
+      <span class="variant-title font-semibold"></span>
+
+      <input type="hidden" class="selected-variant-id-{{ product.id }}" name="id" value="{{ product.variants.first.id }}">
+      </div>
+      <div class="sticky bottom-0 z-10 pt-10{% if settings.layout_style == 'detached' %} pb-4 px-4{% endif %}">
+        <a href="/pages/wishlist"
+          class="primary-btn flex items-center justify-center px-4 py-1 font-bold hover:opacity-90 transition">
+          Go to Wishlist
+          {{ 'readMore-arrow.svg' | inline_asset_content }}
+        </a>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const wishlistBtn = document.querySelector('.wishlist-btn');
+    const wishlistModal = document.getElementById('wishlist-view-{{ product.id }}');
+    const variantInput = wishlistModal.querySelector('.selected-variant-id-{{ product.id }}');
+    const variants = JSON.parse(wishlistModal.querySelector('.variants-{{ product.id }}').dataset.variants);
+
+    if (!wishlistBtn || !wishlistModal || !variantInput || !variants) return;
+
+    wishlistBtn.addEventListener('click', function () {
+      const selectedInput = document.querySelector(`#product-detail .selected-variant-id-{{ product.id }}`);
+      if (!selectedInput) return;
+
+      const selectedId = selectedInput.value;
+      const matched = variants.find(v => v.id == selectedId);
+
+      variantInput.value = selectedId;
+      wishlistModal.querySelector('.variant-price').innerHTML = matched
+        ? `$${(matched.price / 100).toFixed(2)} ${matched.compare_at_price && matched.compare_at_price > matched.price ? `<span class="line-through text-gray">$${(matched.compare_at_price / 100).toFixed(2)}</span>` : ''}`
+        : '';
+
+      wishlistModal.querySelector('.variant-title').textContent = matched ? matched.title : 'N/A';
+
+      wishlistModal.classList.remove('hidden');
+      wishlistModal.classList.add('flex');
+    });
+  });
+</script>

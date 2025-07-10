@@ -1,0 +1,23 @@
+{% layout 'theme' %}
+
+<div class="wishlist-breadcrumb">
+  <div class="wishlist-page{% if settings.layout_style == 'detached' %} container px-4 mx-auto{% endif %} py-10">
+    <h1 class="text-3xl mb-1 font-bold capitalize text-center">Wishlist</h1>
+    <p id="wishlist-page-count" class="text-base font-medium mb-4 text-center" style="color: #727471;">Fetching Data...</p>
+    <div id="wishlist-container" class="grid sm:grid-cols-2 lg:grid-cols-4{% if settings.layout_style == 'detached' %} card-space{% endif %}">
+      <!-- Wishlist items will be loaded here via JS -->
+    </div>
+  </div>
+</div>
+
+<style>
+  {% if settings.layout_style == 'detached' %}
+  .product-slide {
+    height: 250px;
+  }
+  {% else %}
+  .product-slide {
+    height: 300px;
+  }
+  {% endif %}
+</style>
