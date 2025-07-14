@@ -45,7 +45,7 @@
           {% for block in section.blocks %}
             {% if block.type == 'testimonial' %}
             {% assign product = block.settings.product_link %}
-                <div class="overflow-hidden h-full" style="background-color: {{ section.settings.testimonial_background }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}"">
+                <div class="overflow-hidden h-full" style="background-color: {{ section.settings.testimonial_background }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}">
                   <div class="relative aspect-[3/4]">
                     {% if block.settings.video_thumbnail != blank %}
                       <img
