@@ -48,7 +48,6 @@
                         </div>
                     {% endif %}
                     <div>
-                     <div>
                         <p class="text-sm"><strong>{% if author_name %}{{ author_name }}{% else %}{{ article.author }}{% endif %}</strong>{% if designation %}, {{ designation }} {% endif %}</p>
                     </div>
                 {% endif %}
@@ -56,7 +55,6 @@
                 {% if show_date %}
                     <span class="date">{{ article.published_at | date: "%b %d, %Y" }}</span>
                 {% endif %}
-            </div>
             </div>
         
             {% if article.content %}
