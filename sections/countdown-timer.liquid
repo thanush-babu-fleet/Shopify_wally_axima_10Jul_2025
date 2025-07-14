@@ -1,5 +1,5 @@
 {%- style -%}
-  .countdown-bar {
+  .countdown-bar-{{ section.id }} {
     {% if section.settings.background_gradient != blank %}
       background: {{ section.settings.background_gradient }};
     {% else %}
@@ -9,7 +9,7 @@
 {%- endstyle -%}
 
 <div class="{% if settings.layout_style == 'detached' %}container px-4 mx-auto{% endif %}">
-  <div class="countdown-bar px-[7%] py-8 md:py-16">
+  <div class="countdown-bar countdown-bar-{{ section.id }} px-[7%] py-8 md:py-16">
     <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 lg:gap-20 w-full">
       <!-- Countdown Timer -->
       <div class="flex gap-2 md:w-1/2">
@@ -72,7 +72,7 @@
 
     if (timeLeft < 0) {
       clearInterval(countdownInterval);
-      document.querySelector(".countdown-bar").innerHTML = "<div class='container mx-auto px-4 py-8 text-center'><h2 class='text-2xl font-bold'>The sale has ended!</h2></div>";
+      document.querySelector(".countdown-bar-{{ section.id }}").innerHTML = "<div class='container mx-auto px-4 py-8 text-center'><h2 class='text-2xl font-bold'>The sale has ended!</h2></div>";
     }
   }, 1000);
 </script>
