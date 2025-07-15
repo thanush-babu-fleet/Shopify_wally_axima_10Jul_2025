@@ -1,4 +1,9 @@
-<section class="{% if settings.layout_style == 'detached' %} container px-4 mx-auto {% endif %} my-8 md:my-10">
+{% assign highlight_text_color = section.settings.highlight_text_color %}
+{% assign highlight_bg_color = section.settings.highlight_bg_color %}
+{% assign text_color = section.settings.text_color %}
+{% assign bg_color = section.settings.bg_color %}
+
+<section class="{% if settings.layout_style == 'detached' %} container px-4 py-4 mx-auto {% endif %} my-8 md:my-10" style="background-color: {{ bg_color }}">
  {% if section.settings.tagline != blank %}
    <p class="tagline font-semibold" style="text-align: {{ section.settings.content_alignment }}">{{ section.settings.tagline }}</p>
  {% endif %}
@@ -7,7 +12,7 @@
     <h2 class="large{% if section.settings.tagline != blank %} my-4 {% endif %}" style="text-align: {{ section.settings.content_alignment }}">{{ section.settings.accordion_heading }}</h2>
   {% endif %}
   <div class="grid md:grid-cols-2 max-md:gap-8 items-center break-words">
-    <div class="p-10 grid grid-cols-2 md:gap-10 items-center text-center relative" style="background-color: {{ section.settings.bg_color }}">
+    <div class="p-10 grid grid-cols-2 md:gap-10 items-center text-center relative" style="background-color: {{ highlight_bg_color }}">
       <div class="absolute top-1/2 left-1/2 h-px w-[30%] transform -translate-x-1/2"
         style="border-top: 1px solid transparent;
                border-image: linear-gradient(90deg, rgba(142, 150, 137, 0) 0%, #8E9689 50%, rgba(142, 150, 137, 0) 100%);
@@ -19,20 +24,20 @@
                border-image-slice: 1;">
       </div>
       <div class="my-6">
-        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage1 }}</h2>
-        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title1 }}</p>
+        <h2 class="text-4xl font-bold leading-normal" style="color: {{ highlight_text_color }}">{{ section.settings.percentage1 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2" style="color: {{ highlight_text_color }}; opacity: 0.8">{{ section.settings.title1 }}</p>
       </div>
       <div class="my-6">
-        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage2 }}</h2>
-        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title2 }}</p>
+        <h2 class="text-4xl font-bold leading-normal" style="color: {{ highlight_text_color }}">{{ section.settings.percentage2 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2" style="color: {{ highlight_text_color }}; opacity: 0.8">{{ section.settings.title2 }}</p>
       </div>
       <div class="my-6">
-        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage3 }}</h2>
-        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title3 }}</p>
+        <h2 class="text-4xl font-bold leading-normal" style="color: {{ highlight_text_color }}">{{ section.settings.percentage3 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2" style="color: {{ highlight_text_color }}; opacity: 0.8">{{ section.settings.title3 }}</p>
       </div>
       <div class="my-6">
-        <h2 class="text-4xl font-bold leading-normal">{{ section.settings.percentage4 }}</h2>
-        <p class="text-base font-semibold leading-normal mt-2">{{ section.settings.title4 }}</p>
+        <h2 class="text-4xl font-bold leading-normal" style="color: {{ highlight_text_color }}">{{ section.settings.percentage4 }}</h2>
+        <p class="text-base font-semibold leading-normal mt-2" style="color: {{ highlight_text_color }}; opacity: 0.8">{{ section.settings.title4 }}</p>
       </div>
     </div>
 
@@ -40,13 +45,13 @@
       {% for block in section.blocks %}
         {% if block.type == 'accordion' %}
           <details class="border-b py-4">
-            <summary class="font-semibold cursor-pointer flex justify-between items-center leading-normal tracking-wide">
+            <summary class="font-semibold cursor-pointer flex justify-between items-center leading-normal tracking-wide" style="color: {{ text_color }}">
               {{ block.settings.accordion_item_title }}
               <svg width="14" height="8" class="transition-transform duration-200 transform rotate-0 icon-chevron" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="#273025"/>
               </svg>
             </summary>
-            <div class="my-2 [&>p]:font-medium [&>p]:leading-normal">
+            <div class="my-2 [&>p]:font-medium [&>p]:leading-normal" style="color: {{ text_color }}">
               {{ block.settings.accordion_item_description }}
             </div>
           </details>
@@ -119,9 +124,27 @@
     },
     {
       "type": "color",
-      "id": "bg_color",
+      "id": "highlight_bg_color",
       "label": "Product Highlight Background color",
       "default": "#F8F8F8"
+    },
+    {
+      "type": "color",
+      "id": "highlight_text_color",
+      "label": "Product Highlight Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#000000"
     },
     {
       "type": "header",
