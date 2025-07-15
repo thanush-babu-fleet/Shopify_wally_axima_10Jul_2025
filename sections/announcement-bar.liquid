@@ -186,9 +186,11 @@
       {% form 'contact', id: 'contact_form', class: 'contact-form pt-6' %}
         <label for="contact_email" class="visually-hidden">Email Address</label>
         <input type="email" id="contact_email" name="contact[email]" placeholder="john@gmail.com" required>
+        <div id="email-error" class="field-error mb-4" style="color: red; font-size: 0.875rem; display: none;">Please enter a valid email address</div>
         
         <label for="contact_body" class="visually-hidden">Body Message</label>
         <textarea name="contact[body]" id="contact_body" placeholder="Type your message here..." rows="5" required></textarea>
+        <div id="message-error" class="field-error mb-4" style="color: red; font-size: 0.875rem; display: none;">Please enter your message</div>
       
         <button type="submit" class=" primary-btn py-1 flex items-center justify-center w-full">
           <span class="text-base font-semibold">{{ 'global.contact_us.buttonLabel' | t }}</span>
@@ -196,6 +198,7 @@
             {{ 'readMore-arrow.svg' | inline_asset_content }}
           </span>
         </button>
+        
         {% if form.posted_successfully? %}
           <div id="form-success-msg" style="color: green; margin-top: 1rem;">
             {{ 'global.contact_us.subscribe_success' | t }}
@@ -368,71 +371,110 @@
     });
   });
 
-  // Contact form submission handler
-  document.addEventListener('submit', function(e) {
-    if (e.target && e.target.id === 'contact_form') {
-      e.preventDefault();
-      
-      const form = e.target;
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const successMsg = document.getElementById('form-success-msg');
-      
-      // Disable submit button and show loading state
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.dataset.originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<span class="loader" style="display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #000;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span>Sending...';
-      }
-      
-      const formData = new FormData(form);
-      
-      fetch('/contact', {
-        method: 'POST',
-        body: formData,
-      })
-      .then((response) => {
-        if (response.ok) {
-          // Show success message
-          if (successMsg) {
-            successMsg.style.display = 'block';
-            successMsg.style.color = 'green';
-          }
-          
-          // Reset form
-          form.reset();
-          
-          // Hide success message after 3 seconds
-          setTimeout(() => {
-            if (successMsg) {
-              successMsg.style.display = 'none';
-            }
-          }, 3000);
-        } else {
-          throw new Error('Form submission failed');
-        }
-      })
-      .catch((error) => {
-        console.error("Form submit error:", error);
-        
-        // Show error message
-        if (successMsg) {
-          successMsg.style.display = 'block';
-          successMsg.style.color = 'red';
-          successMsg.textContent = 'Something went wrong. Please try again.';
-          
-          // Hide error message after 3 seconds
-          setTimeout(() => {
-            successMsg.style.display = 'none';
-          }, 3000);
-        }
-      })
-      .finally(() => {
-        // Re-enable submit button and restore original text
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = submitBtn.dataset.originalText || 'Send';
-        }
-      });
+  // Contact form validation and submission handler
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contact_form');
+    const emailInput = document.getElementById('contact_email');
+    const messageInput = document.getElementById('contact_body');
+    const emailError = document.getElementById('email-error');
+    const messageError = document.getElementById('message-error');
+    
+    // Track if fields have been touched
+    let emailTouched = false;
+    let messageTouched = false;
+    
+    // Real-time validation functions
+    function validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
     }
+    
+    function validateMessage(message) {
+      return message.trim().length > 0;
+    }
+    
+    function updateEmailError() {
+      const emailValid = validateEmail(emailInput.value);
+      
+      // Only show error if field has been touched and is invalid
+      if (emailTouched && !emailValid) {
+        emailError.style.display = 'block';
+      } else {
+        emailError.style.display = 'none';
+      }
+    }
+    
+    function updateMessageError() {
+      const messageValid = validateMessage(messageInput.value);
+      
+      // Only show error if field has been touched and is invalid
+      if (messageTouched && !messageValid) {
+        messageError.style.display = 'block';
+      } else {
+        messageError.style.display = 'none';
+      }
+    }
+    
+    // Add event listeners for validation
+    emailInput.addEventListener('blur', function() {
+      emailTouched = true;
+      updateEmailError();
+    });
+    
+    messageInput.addEventListener('blur', function() {
+      messageTouched = true;
+      updateMessageError();
+    });
+    
+    // Clear errors when user starts typing valid input
+    emailInput.addEventListener('input', function() {
+      if (emailTouched && validateEmail(emailInput.value)) {
+        emailError.style.display = 'none';
+      }
+    });
+    
+    messageInput.addEventListener('input', function() {
+      if (messageTouched && validateMessage(messageInput.value)) {
+        messageError.style.display = 'none';
+      }
+    });
+    
+    // Form submission handler
+    document.addEventListener('submit', function(e) {
+      if (e.target && e.target.id === 'contact_form') {
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        // Mark all fields as touched on form submission
+        emailTouched = true;
+        messageTouched = true;
+        
+        // Validate before submission
+        updateEmailError();
+        updateMessageError();
+        
+        const emailValid = validateEmail(emailInput.value);
+        const messageValid = validateMessage(messageInput.value);
+        
+        if (!emailValid || !messageValid) {
+          e.preventDefault();
+          return;
+        }
+        
+        // Disable submit button and show loading state
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.dataset.originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<span class="loader" style="display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #000;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span>Sending...';
+          
+          // Re-enable button after a delay (in case of errors)
+          setTimeout(() => {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = submitBtn.dataset.originalText || 'Send';
+            }
+          }, 5000);
+        }
+      }
+    });
   });
 </script>
