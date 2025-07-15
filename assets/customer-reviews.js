@@ -251,6 +251,7 @@ function injectReviewModal() {
       <button id="close-review-modal" class="absolute top-3 right-3 text-2xl text-gray-500 hover:text-black" aria-label="Close">&times;</button>
       <h3 class="text-xl font-bold mb-4">Write a Review</h3>
       <form id="customer-review-form" class="space-y-4">
+        <input type="hidden" id="review-variant-id" />
         <div>
           <label class="block text-sm font-medium mb-1">Name</label>
           <input type="text" id="reviewer-name" required class="w-full border rounded px-3 py-2" />
@@ -270,7 +271,11 @@ function injectReviewModal() {
     </div>
   `;
   document.body.appendChild(modal);
-  modal.querySelector('#review-variant-id').value = window.selectedVariantId || '';
+  // Set variant ID after modal is added to DOM
+  const variantInput = modal.querySelector('#review-variant-id');
+  if (variantInput) {
+    variantInput.value = window.selectedVariantId || getProductId() || '';
+  }
 }
 
 // --- Edit Modal HTML injection (if not present) ---
@@ -461,6 +466,11 @@ document.addEventListener('submit', async function(e) {
     const rating = currentRating;
     const productId = getProductId();
     const customerId = window.customerId || null;
+    
+    // Debug customer ID
+    console.log('Customer ID:', customerId);
+    console.log('Window customer ID:', window.customerId);
+    
     // Always set variantId, use productId if not found
     let variantId = '';
     const variantInput = document.getElementById('review-variant-id');
@@ -470,8 +480,44 @@ document.addEventListener('submit', async function(e) {
     if (!variantId) {
       variantId = productId;
     }
-    if (!name || !review || !rating || !productId) return;
+    
+    // Validate required fields
+    if (!name || !review || !rating || !productId) {
+      document.getElementById('review-error').classList.remove('hidden');
+      document.getElementById('review-error').textContent = 'Please fill in all required fields and select a rating.';
+      return;
+    }
+    
+    // Validate rating range
+    if (!rating || rating < 1 || rating > 5) {
+      document.getElementById('review-error').classList.remove('hidden');
+      document.getElementById('review-error').textContent = 'Please select a rating between 1 and 5 stars.';
+      return;
+    }
+    
+    // Check if customer is logged in
+    if (!customerId) {
+      document.getElementById('review-error').classList.remove('hidden');
+      document.getElementById('review-error').textContent = 'Please log in to submit a review.';
+      return;
+    }
+    
+    // Validate product ID
+    if (!productId) {
+      document.getElementById('review-error').classList.remove('hidden');
+      document.getElementById('review-error').textContent = 'Product ID not found. Please refresh the page and try again.';
+      return;
+    }
+    
+    // Ensure variant ID is set
+    if (!variantId) {
+      variantId = productId; // Fallback to product ID if no variant ID
+    }
     const payload = { name, review, rating, productId, customerId, variantId };
+    
+    // Debug logging
+    console.log('Review submission payload:', payload);
+    
     // Disable submit button and show loader
     const submitBtn = e.target.querySelector('button[type="submit"]');
     if (submitBtn) {
@@ -496,6 +542,13 @@ document.addEventListener('submit', async function(e) {
         let errorMsg = await res.text();
         if (res.status === 409) {
           errorMsg = 'You have already submitted a review for this product.';
+        } else if (res.status === 400) {
+          try {
+            const errorData = JSON.parse(errorMsg);
+            errorMsg = errorData.message || 'Invalid data provided. Please check your input.';
+          } catch (e) {
+            errorMsg = 'Invalid data provided. Please check your input.';
+          }
         }
         document.getElementById('review-success').classList.add('hidden');
         document.getElementById('review-error').classList.remove('hidden');
