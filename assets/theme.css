@@ -171,6 +171,11 @@ p {
   color: var(--primary-btn-hover-text-color);
   border-color: var(--primary-btn-hover-border-color);
 }
+.primary-btn:focus-visible {
+  background-color: var(--primary-btn-hover-bg-color);
+  color: var(--primary-btn-hover-text-color);
+  border-color: var(--primary-btn-hover-border-color);
+}
 .secondary-btn, button.shopify-payment-button__button {
   background-color: var(--secondary-btn-bg-color);
   color: var(--secondary-btn-text-color);
@@ -181,12 +186,22 @@ p {
   color: var(--secondary-btn-hover-text-color);
   border-color: var(--secondary-btn-hover-border-color);
 }
+.secondary-btn:focus-visible, button.shopify-payment-button__button:focus-visible {
+  background-color: var(--secondary-btn-hover-bg-color) !important;
+  color: var(--secondary-btn-hover-text-color);
+  border-color: var(--secondary-btn-hover-border-color);
+}
 .tertiary-btn {
   background-color: var(--tertiary-btn-bg-color);
   color: var(--tertiary-btn-text-color);
   border-color: var(--tertiary-btn-border-color);
 }
 .tertiary-btn:hover {
+  background-color: var(--tertiary-btn-hover-bg-color) !important;
+  color: var(--tertiary-btn-hover-text-color);
+  border-color: var(--tertiary-btn-hover-border-color);
+}
+.tertiary-btn:focus-visible {
   background-color: var(--tertiary-btn-hover-bg-color) !important;
   color: var(--tertiary-btn-hover-text-color);
   border-color: var(--tertiary-btn-hover-border-color);
