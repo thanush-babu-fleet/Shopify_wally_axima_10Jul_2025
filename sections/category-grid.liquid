@@ -105,6 +105,12 @@
   .category-slider-{{ section.id }}.slick-dotted {
       margin-bottom: 32px !important;
     }
+    
+  {% if section.settings.rotate_slides %}
+  .category-slider-{{ section.id }} .slick-pause-icon {
+    display: inline;
+  }
+  {% endif %}
 </style>
 <script>
   function initCategorySlider_{{ section.id | replace: '-', '_' }}() {

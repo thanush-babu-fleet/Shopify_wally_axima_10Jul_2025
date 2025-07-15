@@ -160,6 +160,12 @@
       }
     }
   }
+  
+  {% if section.settings.rotate_slides %}
+  .promo-cards-slider-{{ section.id }} .slick-pause-icon {
+    display: inline;
+  }
+  {% endif %}
 </style>
 
 {% schema %}

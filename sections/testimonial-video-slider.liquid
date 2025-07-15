@@ -24,6 +24,12 @@
         }
       }
     }
+    
+    {% if section.settings.rotate_slides %}
+    .testimonial-video-slider-{{ section.id }} .slick-pause-icon {
+      display: inline;
+    }
+    {% endif %}
   }
 </style>
 <div class="testimonial-video-section-{{section.id}} py-8 md:py-12">

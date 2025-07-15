@@ -15,6 +15,12 @@
     {% else %}
       background-color: {{section.settings.bg_color}};
     {% endif %}
+    
+    {% if section.settings.rotate_slides %}
+    .article-slider-{{ section.id }} .slick-pause-icon {
+      display: inline;
+    }
+    {% endif %}
   }
 </style>
 
