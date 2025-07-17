@@ -107,10 +107,13 @@
             firstFocusableEl.focus();
           }
         }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        toggleSearchBox(false);
       }
     }
-    modal.addEventListener('keydown', handleTrap);
-    modal._removeTrap = () => modal.removeEventListener('keydown', handleTrap);
+    modal.addEventListener("keydown", handleTrap);
+    modal._removeTrap = () => modal.removeEventListener("keydown", handleTrap);
   }
 
   function toggleSearchBox(open) {
@@ -170,6 +173,17 @@
       const isClickOnSearchInput = searchInput?.contains(event.target) || searchInputDesktop?.contains(event.target);
       
       if (!isClickInsideSearchBox && !isClickOnTrigger && !isClickOnSearchInput) {
+        toggleSearchBox(false);
+      }
+    }
+  });
+  
+  // Global escape key listener
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      const searchBox = document.getElementById('searchBox');
+      if (searchBox && searchBox.style.display === 'block') {
+        event.preventDefault();
         toggleSearchBox(false);
       }
     }

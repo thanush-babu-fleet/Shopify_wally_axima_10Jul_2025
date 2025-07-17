@@ -142,7 +142,8 @@ input::placeholder {
                       {{ 'search-icon.svg' | inline_asset_content }}
                   </p>
                   <input id="searchInput" type="text" placeholder="{{ 'global.search.placeholder' | t }}" aria-label="Search Box"
-                      class="search-input flex-1 bg-transparent outline-none border-none text-gray1 w-11/12 text-base font-normal" />
+                      class="search-input flex-1 bg-transparent outline-none border-none text-gray1 w-11/12 text-base font-normal" 
+                      tabindex="-1" readonly />
               </button>
             {%- endif -%}
         </nav>
