@@ -2,8 +2,12 @@
 
 {% for link in linklist %}
 {% if link.links != blank %}
-    <div class="relative dropdownnav {% if menu_type == 'hover' %}group{% endif %}">
-        <button class="main-menu dropdown-toggle flex items-center gap-2 {% if menu_type == 'click' %}{% else %}cursor-pointer{% endif %}">
+    <div class="relative dropdownnav {% if menu_type == 'hover' %}group{% endif %}" role="none">
+        <button class="main-menu dropdown-toggle flex items-center gap-2 {% if menu_type == 'click' %}{% else %}cursor-pointer{% endif %}" 
+                role="menuitem" 
+                aria-haspopup="true" 
+                aria-expanded="false"
+                tabindex="0">
           {% if menu_type == 'click' %}
             {{ link.title }}
           {% else %}
@@ -21,10 +25,16 @@
             opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300
           {% else %}
             hidden
-          {% endif %}">
+          {% endif %}"
+          role="menu"
+          aria-label="{{ link.title }} submenu">
           {% for sub_link in link.links %}
-            <div class="relative">
-              <button class="submenu-toggle flex justify-between items-center w-full px-4 py-2">
+            <div class="relative" role="none">
+              <button class="submenu-toggle flex justify-between items-center w-full px-4 py-2" 
+                      role="menuitem"
+                      aria-haspopup="{% if sub_link.links != blank %}true{% else %}false{% endif %}"
+                      aria-expanded="false"
+                      tabindex="-1">
                 <a class="w-full text-left" href="{{ sub_link.url }}" aria-label="{{ sub_link.title }}">{{ sub_link.title }}</a>
                 {% if sub_link.links != blank %}
                     <span class="svg-wrapper down-arrow -rotate-90">
@@ -42,9 +52,15 @@
                     opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300
                   {% else %}
                     hidden
-                  {% endif %}">
+                  {% endif %}"
+                  role="menu"
+                  aria-label="{{ sub_link.title }} submenu">
                   {% for sub_sub_link in sub_link.links %}
-                    <a href="{{ sub_sub_link.url }}" class="block px-4 py-2" aria-label="{{ sub_sub_link.title }}">
+                    <a href="{{ sub_sub_link.url }}" 
+                       class="block px-4 py-2" 
+                       role="menuitem"
+                       tabindex="-1"
+                       aria-label="{{ sub_sub_link.title }}">
                       {{ sub_sub_link.title }}
                     </a>
                   {% endfor %}
@@ -55,7 +71,7 @@
         </div>
     </div>
 {% else %}
-  <a href="{{ link.url }}" class="main-menu" aria-label="{{ link.title }}">{{ link.title }}</a>
+  <a href="{{ link.url }}" class="main-menu" role="menuitem" aria-label="{{ link.title }}">{{ link.title }}</a>
 {% endif %}
 {% endfor %}
 
@@ -64,64 +80,383 @@
     const menuType = '{{ menu_type }}';
     
     if (menuType === 'click') {
-      // Click-based menu logic (existing functionality)
+      // Click-based menu logic with enhanced keyboard navigation
       $(document).on("click", ".dropdown-toggle", function (e) {
         e.preventDefault();
-        const $this = $(this);
-        const $dropdownMenu = $this.closest(".dropdownnav").find(".dropdown-menu").first();
-        $(".dropdown-menu").not($dropdownMenu).addClass("hidden");
-        $(".dropdown-toggle").not($this).removeClass("active");
-        $dropdownMenu.toggleClass("hidden");
-        $this.toggleClass("active");
+        toggleDropdown($(this));
       });
       
       $(document).on("click", ".submenu-toggle", function (e) {
         e.preventDefault();
         e.stopPropagation();
-        const $this = $(this);
-        const $submenu = $this.closest("div.relative").find(".submenu").first();
-        $this.closest(".dropdown-menu").find(".submenu").not($submenu).addClass("hidden");
-        $submenu.toggleClass("hidden");
+        toggleSubmenu($(this));
       });
       
-      $(document).on("click", function (e) {
-        if (!$(e.target).closest(".dropdownnav").length) {
-          $(".dropdown-menu, .submenu").addClass("hidden");
-          $(".dropdown-toggle").removeClass("active");
+      // Keyboard navigation for dropdown toggles
+      $(document).on("keydown", ".dropdown-toggle", function (e) {
+        const $this = $(this);
+        
+        switch(e.key) {
+          case 'Enter':
+          case ' ':
+            e.preventDefault();
+            toggleDropdown($this);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            openDropdown($this);
+            focusFirstMenuItem($this);
+            break;
+          case 'Escape':
+            closeAllDropdowns();
+            break;
         }
       });
       
+      // Keyboard navigation for submenu toggles
+      $(document).on("keydown", ".submenu-toggle", function (e) {
+        const $this = $(this);
+        
+        switch(e.key) {
+          case 'Enter':
+          case ' ':
+            e.preventDefault();
+            toggleSubmenu($this);
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            openSubmenu($this);
+            focusFirstSubmenuItem($this);
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            closeSubmenu($this);
+            $this.focus();
+            break;
+          case 'Escape':
+            closeAllDropdowns();
+            break;
+        }
+      });
+      
+      // Keyboard navigation for menu items
+      $(document).on("keydown", ".dropdown-menu a, .submenu a", function (e) {
+        const $this = $(this);
+        const $menu = $this.closest('.dropdown-menu, .submenu');
+        const $menuItems = $menu.find('a, .submenu-toggle');
+        const currentIndex = $menuItems.index($this);
+        
+        switch(e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            const nextIndex = (currentIndex + 1) % $menuItems.length;
+            $menuItems.eq(nextIndex).focus();
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            const prevIndex = currentIndex === 0 ? $menuItems.length - 1 : currentIndex - 1;
+            $menuItems.eq(prevIndex).focus();
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            if ($this.hasClass('submenu-toggle')) {
+              openSubmenu($this);
+              focusFirstSubmenuItem($this);
+            }
+            break;
+          case 'ArrowLeft':
+            e.preventDefault();
+            if ($this.closest('.submenu').length) {
+              closeSubmenu($this.closest('.submenu').prev('.submenu-toggle'));
+              $this.closest('.submenu').prev('.submenu-toggle').focus();
+            }
+            break;
+          case 'Escape':
+            closeAllDropdowns();
+            break;
+        }
+      });
+      
+      // Close dropdowns when clicking outside
+      $(document).on("click", function (e) {
+        if (!$(e.target).closest(".dropdownnav").length) {
+          closeAllDropdowns();
+        }
+      });
+      
+      // Focus management
       $(".dropdownnav").on("focusout", function () {
         const $this = $(this);
         setTimeout(() => {
           if (!$this.has(document.activeElement).length) {
-            $this.find(".dropdown-menu, .submenu").addClass("hidden");
-            $this.find(".dropdown-toggle").removeClass("active");
+            closeDropdown($this);
           }
         }, 10);
       });
+      
+      // Helper functions
+      function toggleDropdown($toggle) {
+        const $dropdownMenu = $toggle.closest(".dropdownnav").find(".dropdown-menu").first();
+        
+        // Close all other dropdowns first
+        $(".dropdownnav").not($toggle.closest(".dropdownnav")).each(function() {
+          closeDropdown($(this).find(".dropdown-toggle"));
+        });
+        
+        if ($dropdownMenu.hasClass("hidden")) {
+          openDropdown($toggle);
+        } else {
+          closeDropdown($toggle);
+        }
+      }
+      
+      function openDropdown($toggle) {
+        const $dropdownMenu = $toggle.closest(".dropdownnav").find(".dropdown-menu").first();
+        $dropdownMenu.removeClass("hidden");
+        $toggle.addClass("active").attr("aria-expanded", "true");
+        $dropdownMenu.find("a, .submenu-toggle").attr("tabindex", "0");
+      }
+      
+      function closeDropdown($toggle) {
+        const $dropdownMenu = $toggle.closest(".dropdownnav").find(".dropdown-menu").first();
+        $dropdownMenu.addClass("hidden");
+        $toggle.removeClass("active").attr("aria-expanded", "false");
+        $dropdownMenu.find("a, .submenu-toggle").attr("tabindex", "-1");
+        
+        // Reset arrow states
+        const $upArrow = $toggle.find(".up-arrow");
+        const $downArrow = $toggle.find(".down-arrow");
+        $upArrow.addClass("hidden");
+        $downArrow.removeClass("hidden");
+        
+        closeAllSubmenus($dropdownMenu);
+      }
+      
+      function toggleSubmenu($toggle) {
+        const $submenu = $toggle.closest("div.relative").find(".submenu").first();
+        
+        // Close all other submenus in the same dropdown first
+        $toggle.closest(".dropdown-menu").find(".submenu").not($submenu).each(function() {
+          closeSubmenu($(this).prev(".submenu-toggle"));
+        });
+        
+        if ($submenu.hasClass("hidden")) {
+          openSubmenu($toggle);
+        } else {
+          closeSubmenu($toggle);
+        }
+      }
+      
+      function openSubmenu($toggle) {
+        const $submenu = $toggle.closest("div.relative").find(".submenu").first();
+        $submenu.removeClass("hidden");
+        $toggle.attr("aria-expanded", "true");
+        $submenu.find("a").attr("tabindex", "0");
+        
+        // Update arrow states for submenu
+        const $upArrow = $toggle.find(".up-arrow");
+        const $downArrow = $toggle.find(".down-arrow");
+        $upArrow.removeClass("hidden");
+        $downArrow.addClass("hidden");
+      }
+      
+      function closeSubmenu($toggle) {
+        const $submenu = $toggle.closest("div.relative").find(".submenu").first();
+        $submenu.addClass("hidden");
+        $toggle.attr("aria-expanded", "false");
+        $submenu.find("a").attr("tabindex", "-1");
+        
+        // Reset arrow states for submenu
+        const $upArrow = $toggle.find(".up-arrow");
+        const $downArrow = $toggle.find(".down-arrow");
+        $upArrow.addClass("hidden");
+        $downArrow.removeClass("hidden");
+      }
+      
+      function closeAllSubmenus($dropdownMenu) {
+        $dropdownMenu.find(".submenu").addClass("hidden");
+        $dropdownMenu.find(".submenu-toggle").attr("aria-expanded", "false");
+        $dropdownMenu.find(".submenu a").attr("tabindex", "-1");
+        
+        // Reset all submenu arrow states
+        $dropdownMenu.find(".submenu-toggle").each(function() {
+          const $upArrow = $(this).find(".up-arrow");
+          const $downArrow = $(this).find(".down-arrow");
+          $upArrow.addClass("hidden");
+          $downArrow.removeClass("hidden");
+        });
+      }
+      
+      function closeAllDropdowns() {
+        $(".dropdown-menu, .submenu").addClass("hidden");
+        $(".dropdown-toggle, .submenu-toggle").removeClass("active").attr("aria-expanded", "false");
+        $(".dropdown-menu a, .submenu a, .submenu-toggle").attr("tabindex", "-1");
+        
+        // Reset all arrow states
+        $(".dropdown-toggle").each(function() {
+          const $upArrow = $(this).find(".up-arrow");
+          const $downArrow = $(this).find(".down-arrow");
+          $upArrow.addClass("hidden");
+          $downArrow.removeClass("hidden");
+        });
+        
+        $(".submenu-toggle").each(function() {
+          const $upArrow = $(this).find(".up-arrow");
+          const $downArrow = $(this).find(".down-arrow");
+          $upArrow.addClass("hidden");
+          $downArrow.removeClass("hidden");
+        });
+      }
+      
+      function focusFirstMenuItem($dropdownToggle) {
+        const $dropdownMenu = $dropdownToggle.closest(".dropdownnav").find(".dropdown-menu").first();
+        const $firstItem = $dropdownMenu.find("a, .submenu-toggle").first();
+        if ($firstItem.length) {
+          $firstItem.focus();
+        }
+      }
+      
+      function focusFirstSubmenuItem($submenuToggle) {
+        const $submenu = $submenuToggle.closest("div.relative").find(".submenu").first();
+        const $firstItem = $submenu.find("a").first();
+        if ($firstItem.length) {
+          $firstItem.focus();
+        }
+      }
+      
     } else {
-      // Hover-based menu logic (like mega-menu)
+      // Hover-based menu logic with enhanced keyboard navigation
       const dropdownNavs = document.querySelectorAll(".dropdownnav");
       
       dropdownNavs.forEach(dropdownNav => {
         const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
         const submenus = dropdownNav.querySelectorAll(".submenu");
+        const dropdownToggle = dropdownNav.querySelector(".dropdown-toggle");
+        
+        // Enhanced keyboard support for hover menus
+        dropdownToggle.addEventListener("keydown", function(e) {
+          switch(e.key) {
+            case 'Enter':
+            case ' ':
+              e.preventDefault();
+              toggleDropdownHover(this);
+              break;
+            case 'ArrowDown':
+              e.preventDefault();
+              openDropdownHover(this);
+              focusFirstMenuItemHover(this);
+              break;
+            case 'Escape':
+              closeAllDropdownsHover();
+              break;
+          }
+        });
+        
+        // Keyboard navigation for submenu toggles in hover mode
+        submenus.forEach(submenu => {
+          const submenuToggle = submenu.previousElementSibling;
+          
+          submenuToggle.addEventListener("keydown", function(e) {
+            switch(e.key) {
+              case 'Enter':
+              case ' ':
+                e.preventDefault();
+                toggleSubmenuHover(this);
+                break;
+              case 'ArrowRight':
+                e.preventDefault();
+                openSubmenuHover(this);
+                focusFirstSubmenuItemHover(this);
+                break;
+              case 'ArrowLeft':
+                e.preventDefault();
+                closeSubmenuHover(this);
+                this.focus();
+                break;
+              case 'Escape':
+                closeAllDropdownsHover();
+                break;
+            }
+          });
+        });
+        
+        // Keyboard navigation for menu items in hover mode
+        document.addEventListener("keydown", function (e) {
+          if (e.target.matches(".dropdown-menu a, .submenu a")) {
+            const $this = $(e.target);
+            const $menu = $this.closest('.dropdown-menu, .submenu');
+            const $menuItems = $menu.find('a, .submenu-toggle');
+            const currentIndex = $menuItems.index($this);
+            
+            switch(e.key) {
+              case 'ArrowDown':
+                e.preventDefault();
+                const nextIndex = (currentIndex + 1) % $menuItems.length;
+                $menuItems.eq(nextIndex).focus();
+                break;
+              case 'ArrowUp':
+                e.preventDefault();
+                const prevIndex = currentIndex === 0 ? $menuItems.length - 1 : currentIndex - 1;
+                $menuItems.eq(prevIndex).focus();
+                break;
+              case 'ArrowRight':
+                e.preventDefault();
+                if ($this.hasClass('submenu-toggle')) {
+                  openSubmenuHover($this[0]);
+                  focusFirstSubmenuItemHover($this[0]);
+                }
+                break;
+              case 'ArrowLeft':
+                e.preventDefault();
+                if ($this.closest('.submenu').length) {
+                  closeSubmenuHover($this.closest('.submenu').prev('.submenu-toggle')[0]);
+                  $this.closest('.submenu').prev('.submenu-toggle').focus();
+                }
+                break;
+              case 'Escape':
+                closeAllDropdownsHover();
+                break;
+            }
+          }
+        });
         
         // Close menu when mouse leaves the dropdown area
         dropdownNav.addEventListener("mouseleave", function() {
-          // Force hide the menu by removing all hover classes and setting styles directly
-          dropdownMenu.style.opacity = "0";
-          dropdownMenu.style.visibility = "hidden";
-          submenus.forEach(submenu => {
-            submenu.style.opacity = "0";
-            submenu.style.visibility = "hidden";
-          });
+          // Only close if not focused
+          if (!dropdownNav.contains(document.activeElement)) {
+            dropdownMenu.style.opacity = "0";
+            dropdownMenu.style.visibility = "hidden";
+            
+            // Reset arrow states when menu closes - use inline styles to override CSS
+            const upArrow = dropdownToggle.querySelector(".up-arrow");
+            const downArrow = dropdownToggle.querySelector(".down-arrow");
+            if (upArrow && downArrow) {
+              upArrow.classList.add("hidden");
+              upArrow.style.display = "none";
+              downArrow.classList.remove("hidden");
+              downArrow.style.display = "inline";
+            }
+            
+            submenus.forEach(submenu => {
+              submenu.style.opacity = "0";
+              submenu.style.visibility = "hidden";
+              
+              // Reset submenu arrow states when submenu closes - use inline styles to override CSS
+              const submenuToggle = submenu.previousElementSibling;
+              const subUpArrow = submenuToggle.querySelector(".up-arrow");
+              const subDownArrow = submenuToggle.querySelector(".down-arrow");
+              if (subUpArrow && subDownArrow) {
+                subUpArrow.classList.add("hidden");
+                subUpArrow.style.display = "none";
+                subDownArrow.classList.remove("hidden");
+                subDownArrow.style.display = "inline";
+              }
+            });
+          }
         });
         
         // Ensure menu opens when mouse enters
         dropdownNav.addEventListener("mouseenter", function() {
-          // Force show the menu by setting styles directly
           dropdownMenu.style.opacity = "1";
           dropdownMenu.style.visibility = "visible";
         });
@@ -131,27 +466,48 @@
           const submenuToggle = submenu.previousElementSibling;
           
           submenuToggle.addEventListener("mouseenter", function() {
-            // Show submenu
             submenu.style.opacity = "1";
             submenu.style.visibility = "visible";
           });
           
           submenuToggle.addEventListener("mouseleave", function() {
-            // Hide submenu
-            submenu.style.opacity = "0";
-            submenu.style.visibility = "hidden";
+            if (!submenu.contains(document.activeElement)) {
+              submenu.style.opacity = "0";
+              submenu.style.visibility = "hidden";
+              
+              // Reset submenu arrow states when submenu closes - use inline styles to override CSS
+              const subUpArrow = this.querySelector(".up-arrow");
+              const subDownArrow = this.querySelector(".down-arrow");
+              if (subUpArrow && subDownArrow) {
+                subUpArrow.classList.add("hidden");
+                subUpArrow.style.display = "none";
+                subDownArrow.classList.remove("hidden");
+                subDownArrow.style.display = "inline";
+              }
+            }
           });
           
           submenu.addEventListener("mouseenter", function() {
-            // Keep submenu visible when hovering over it
             submenu.style.opacity = "1";
             submenu.style.visibility = "visible";
           });
           
           submenu.addEventListener("mouseleave", function() {
-            // Hide submenu when leaving it
-            submenu.style.opacity = "0";
-            submenu.style.visibility = "hidden";
+            if (!submenu.contains(document.activeElement)) {
+              submenu.style.opacity = "0";
+              submenu.style.visibility = "hidden";
+              
+              // Reset submenu arrow states when submenu closes - use inline styles to override CSS
+              const submenuToggle = submenu.previousElementSibling;
+              const subUpArrow = submenuToggle.querySelector(".up-arrow");
+              const subDownArrow = submenuToggle.querySelector(".down-arrow");
+              if (subUpArrow && subDownArrow) {
+                subUpArrow.classList.add("hidden");
+                subUpArrow.style.display = "none";
+                subDownArrow.classList.remove("hidden");
+                subDownArrow.style.display = "inline";
+              }
+            }
           });
         });
       });
@@ -163,13 +519,35 @@
           document.querySelectorAll(".dropdownnav").forEach(dropdownNav => {
             const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
             const submenus = dropdownNav.querySelectorAll(".submenu");
+            const dropdownToggle = dropdownNav.querySelector(".dropdown-toggle");
             
-            // Force hide the menu by setting styles directly
             dropdownMenu.style.opacity = "0";
             dropdownMenu.style.visibility = "hidden";
+            
+            // Reset arrow states when menu closes - use inline styles to override CSS
+            const upArrow = dropdownToggle.querySelector(".up-arrow");
+            const downArrow = dropdownToggle.querySelector(".down-arrow");
+            if (upArrow && downArrow) {
+              upArrow.classList.add("hidden");
+              upArrow.style.display = "none";
+              downArrow.classList.remove("hidden");
+              downArrow.style.display = "inline";
+            }
+            
             submenus.forEach(submenu => {
               submenu.style.opacity = "0";
               submenu.style.visibility = "hidden";
+              
+              // Reset submenu arrow states when submenu closes - use inline styles to override CSS
+              const submenuToggle = submenu.previousElementSibling;
+              const subUpArrow = submenuToggle.querySelector(".up-arrow");
+              const subDownArrow = submenuToggle.querySelector(".down-arrow");
+              if (subUpArrow && subDownArrow) {
+                subUpArrow.classList.add("hidden");
+                subUpArrow.style.display = "none";
+                subDownArrow.classList.remove("hidden");
+                subDownArrow.style.display = "inline";
+              }
             });
           });
         }
@@ -181,17 +559,196 @@
           document.querySelectorAll(".dropdownnav").forEach(dropdownNav => {
             const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
             const submenus = dropdownNav.querySelectorAll(".submenu");
+            const dropdownToggle = dropdownNav.querySelector(".dropdown-toggle");
             
-            // Force hide the menu by setting styles directly
             dropdownMenu.style.opacity = "0";
             dropdownMenu.style.visibility = "hidden";
+            
+            // Reset arrow states when menu closes - use inline styles to override CSS
+            const upArrow = dropdownToggle.querySelector(".up-arrow");
+            const downArrow = dropdownToggle.querySelector(".down-arrow");
+            if (upArrow && downArrow) {
+              upArrow.classList.add("hidden");
+              upArrow.style.display = "none";
+              downArrow.classList.remove("hidden");
+              downArrow.style.display = "inline";
+            }
+            
             submenus.forEach(submenu => {
               submenu.style.opacity = "0";
               submenu.style.visibility = "hidden";
+              
+              // Reset submenu arrow states when submenu closes - use inline styles to override CSS
+              const submenuToggle = submenu.previousElementSibling;
+              const subUpArrow = submenuToggle.querySelector(".up-arrow");
+              const subDownArrow = submenuToggle.querySelector(".down-arrow");
+              if (subUpArrow && subDownArrow) {
+                subUpArrow.classList.add("hidden");
+                subUpArrow.style.display = "none";
+                subDownArrow.classList.remove("hidden");
+                subDownArrow.style.display = "inline";
+              }
             });
           });
         }
       });
+      
+      // Focus management for hover mode
+      document.querySelectorAll(".dropdownnav").forEach(dropdownNav => {
+        dropdownNav.addEventListener("focusout", function (e) {
+          // Use a longer timeout to allow focus to move between menu items
+          setTimeout(() => {
+            // Check if the new focus target is still within this dropdownnav
+            if (!dropdownNav.contains(document.activeElement)) {
+              closeDropdownHover(dropdownNav);
+            }
+          }, 100);
+        });
+      });
+      
+      // Helper functions for hover mode
+      function toggleDropdownHover(toggle) {
+        const dropdownMenu = toggle.closest(".dropdownnav").querySelector(".dropdown-menu");
+        
+        // Close all other dropdowns first
+        document.querySelectorAll(".dropdownnav").forEach(nav => {
+          if (nav !== toggle.closest(".dropdownnav")) {
+            closeDropdownHover(nav);
+          }
+        });
+        
+        if (dropdownMenu.style.opacity === "1") {
+          closeDropdownHover(toggle.closest(".dropdownnav"));
+        } else {
+          openDropdownHover(toggle);
+        }
+      }
+      
+      function openDropdownHover(toggle) {
+        const dropdownMenu = toggle.closest(".dropdownnav").querySelector(".dropdown-menu");
+        const upArrow = toggle.querySelector(".up-arrow");
+        const downArrow = toggle.querySelector(".down-arrow");
+        
+        dropdownMenu.style.opacity = "1";
+        dropdownMenu.style.visibility = "visible";
+        
+        // Update arrow states
+        upArrow.classList.remove("hidden");
+        upArrow.style.display = "inline";
+        downArrow.classList.add("hidden");
+        downArrow.style.display = "none";
+        
+        // Make menu items focusable
+        dropdownMenu.querySelectorAll("a, .submenu-toggle").forEach(item => {
+          item.setAttribute("tabindex", "0");
+        });
+      }
+      
+      function closeDropdownHover(dropdownNav) {
+        const dropdownMenu = dropdownNav.querySelector(".dropdown-menu");
+        const dropdownToggle = dropdownNav.querySelector(".dropdown-toggle");
+        const upArrow = dropdownToggle.querySelector(".up-arrow");
+        const downArrow = dropdownToggle.querySelector(".down-arrow");
+        
+        dropdownMenu.style.opacity = "0";
+        dropdownMenu.style.visibility = "hidden";
+        
+        // Reset arrow states
+        upArrow.classList.add("hidden");
+        upArrow.style.display = "none";
+        downArrow.classList.remove("hidden");
+        downArrow.style.display = "inline";
+        
+        // Make menu items non-focusable
+        dropdownMenu.querySelectorAll("a, .submenu-toggle").forEach(item => {
+          item.setAttribute("tabindex", "-1");
+        });
+        
+        // Close all submenus
+        dropdownNav.querySelectorAll(".submenu").forEach(submenu => {
+          closeSubmenuHover(submenu.previousElementSibling);
+        });
+      }
+      
+      function toggleSubmenuHover(toggle) {
+        const submenu = toggle.closest("div.relative").querySelector(".submenu");
+        
+        // Close all other submenus in the same dropdown first
+        const dropdownMenu = toggle.closest(".dropdown-menu");
+        dropdownMenu.querySelectorAll(".submenu").forEach(sub => {
+          if (sub !== submenu) {
+            closeSubmenuHover(sub.previousElementSibling);
+          }
+        });
+        
+        if (submenu.style.opacity === "1") {
+          closeSubmenuHover(toggle);
+        } else {
+          openSubmenuHover(toggle);
+        }
+      }
+      
+      function openSubmenuHover(toggle) {
+        const submenu = toggle.closest("div.relative").querySelector(".submenu");
+        const upArrow = toggle.querySelector(".up-arrow");
+        const downArrow = toggle.querySelector(".down-arrow");
+        
+        submenu.style.opacity = "1";
+        submenu.style.visibility = "visible";
+        
+        // Update arrow states
+        upArrow.classList.remove("hidden");
+        upArrow.style.display = "inline";
+        downArrow.classList.add("hidden");
+        downArrow.style.display = "none";
+        
+        // Make submenu items focusable
+        submenu.querySelectorAll("a").forEach(item => {
+          item.setAttribute("tabindex", "0");
+        });
+      }
+      
+      function closeSubmenuHover(toggle) {
+        const submenu = toggle.closest("div.relative").querySelector(".submenu");
+        const upArrow = toggle.querySelector(".up-arrow");
+        const downArrow = toggle.querySelector(".down-arrow");
+        
+        submenu.style.opacity = "0";
+        submenu.style.visibility = "hidden";
+        
+        // Reset arrow states
+        upArrow.classList.add("hidden");
+        upArrow.style.display = "none";
+        downArrow.classList.remove("hidden");
+        downArrow.style.display = "inline";
+        
+        // Make submenu items non-focusable
+        submenu.querySelectorAll("a").forEach(item => {
+          item.setAttribute("tabindex", "-1");
+        });
+      }
+      
+      function closeAllDropdownsHover() {
+        document.querySelectorAll(".dropdownnav").forEach(dropdownNav => {
+          closeDropdownHover(dropdownNav);
+        });
+      }
+      
+      function focusFirstMenuItemHover(toggle) {
+        const dropdownMenu = toggle.closest(".dropdownnav").querySelector(".dropdown-menu");
+        const firstItem = dropdownMenu.querySelector("a, .submenu-toggle");
+        if (firstItem) {
+          firstItem.focus();
+        }
+      }
+      
+      function focusFirstSubmenuItemHover(toggle) {
+        const submenu = toggle.closest("div.relative").querySelector(".submenu");
+        const firstItem = submenu.querySelector("a");
+        if (firstItem) {
+          firstItem.focus();
+        }
+      }
     }
   });
 </script>

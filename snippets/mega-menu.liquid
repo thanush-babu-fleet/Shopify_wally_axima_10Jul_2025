@@ -38,8 +38,12 @@
 <div class="hidden md:flex gap-6">
 {% for link in linklist %}
   {% if link.links != blank %}
-    <div class="megamenu flex items-center {% if menu_type == 'hover' %}group{% endif %}">
-      <div class="main-menu flex items-center gap-1 cursor-pointer pl-2 {% if menu_type == 'click' %}dropdown-toggle{% endif %}">
+    <div class="megamenu flex items-center {% if menu_type == 'hover' %}group{% endif %}" role="none">
+      <div class="main-menu flex items-center gap-1 cursor-pointer pl-2 {% if menu_type == 'click' %}dropdown-toggle{% endif %}" 
+           role="menuitem"
+           aria-haspopup="true"
+           aria-expanded="false"
+           tabindex="0">
         {% if menu_type == 'click' %}
           {{ link.title }}
         {% else %}
@@ -69,7 +73,7 @@
         {% else %}
           hidden
         {% endif %}
-      " style="top: calc(100% + 1px)">
+      " style="top: calc(100% + 1px)" role="menu" aria-label="{{ link.title }} mega menu">
         {%- liquid
           if link.links.size == 1
             assign megamenu_grid = 'sm:grid-cols-3'
@@ -83,15 +87,21 @@
         -%}
         <div class="grid grid-cols-1 {{ megamenu_grid }} gap-4">
           {% for sub_link in link.links %}
-            <div>
-              <a href="{{ sub_link.url }}" class="subheading" style="font-family: var(--heading-font)" aria-label="{{ sub_link.title }}">
+            <div role="none">
+              <a href="{{ sub_link.url }}" class="subheading" style="font-family: var(--heading-font)" 
+                 role="menuitem" 
+                 tabindex="-1"
+                 aria-label="{{ sub_link.title }}">
                 {{ sub_link.title }}
               </a>
               {% if sub_link.links != blank %}
-                <ul class="mt-6 flex flex-col gap-3">
+                <ul class="mt-6 flex flex-col gap-3" role="menu" aria-label="{{ sub_link.title }} submenu">
                   {% for sub_sub_link in sub_link.links %}
-                    <li>
-                      <a class="font-medium" href="{{ sub_sub_link.url }}" aria-label="{{ sub_sub_link.title }}">
+                    <li role="none">
+                      <a class="font-medium" href="{{ sub_sub_link.url }}" 
+                         role="menuitem"
+                         tabindex="-1"
+                         aria-label="{{ sub_sub_link.title }}">
                         {{ sub_sub_link.title }}
                       </a>
                     </li>
@@ -103,7 +113,7 @@
 
           {% for block in section.blocks %}
             {% if block.type == "featured_block" %}
-              <div class="relative bg-gray-100 col-span-2 overflow-hidden" {{ block.shopify_attributes }}>
+              <div class="relative bg-gray-100 col-span-2 overflow-hidden" {{ block.shopify_attributes }} role="none">
                 {% if block.settings.featured_block_img != blank %}
                   <div class="absolute top-0 w-full h-full">
                     {% assign featured_block_img_alt = block.settings.featured_block_img.alt | default: shop.name | escape %}
@@ -140,156 +150,355 @@
       </div>
     </div>
   {% else %}
-    <a href="{{ link.url }}" class="main-menu flex items-center px-2" aria-label="{{ link.title }}">{{ link.title }}</a>
+    <a href="{{ link.url }}" class="main-menu flex items-center px-2" role="menuitem" aria-label="{{ link.title }}">{{ link.title }}</a>
   {% endif %}
 {% endfor %}
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("LinkList:", "{{ linklist[0] }}");
   const menuType = '{{ menu_type }}';
   
   if (menuType === 'click') {
-    // Click-based menu logic
+    // Click-based menu logic with enhanced keyboard navigation
     const menuToggles = document.querySelectorAll(".main-menu.dropdown-toggle");
 
     menuToggles.forEach(toggle => {
       toggle.addEventListener("click", function (e) {
         e.preventDefault();
-        const megamenu = this.closest(".megamenu");
-        const menuContent = megamenu.querySelector(".menu-content");
-        const bgopacity = megamenu.querySelector(".megamenu-backdrop");
-        const upArrow = this.querySelector(".up-arrow");
-        const downArrow = this.querySelector(".down-arrow");
-
-        // Close all other menus
-        document.querySelectorAll(".megamenu").forEach(menu => {
-          const content = menu.querySelector(".menu-content");
-          const backdrop = menu.querySelector(".megamenu-backdrop");
-          const toggleBtn = menu.querySelector(".main-menu.dropdown-toggle");
-          const up = toggleBtn.querySelector(".up-arrow");
-          const down = toggleBtn.querySelector(".down-arrow");
-
-          if (content !== menuContent) {
-            content.classList.add("hidden");
-            backdrop.classList.add("hidden");
-            toggleBtn.classList.remove("active");
-            up.classList.add("hidden");
-            down.classList.remove("hidden");
-          }
-        });
-
-        // Toggle current menu
-        this.classList.toggle("active");
-        menuContent.classList.toggle("hidden");
-        upArrow.classList.toggle("hidden");
-        downArrow.classList.toggle("hidden");
-
-        if (menuContent.classList.contains("hidden")) {
-          bgopacity.classList.add("hidden");
-        } else {
-          bgopacity.classList.remove("hidden");
+        toggleMegaMenu(this);
+      });
+      
+      // Keyboard navigation for mega menu toggles
+      toggle.addEventListener("keydown", function (e) {
+        switch(e.key) {
+          case 'Enter':
+          case ' ':
+            e.preventDefault();
+            toggleMegaMenu(this);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            openMegaMenu(this);
+            focusFirstMenuItem(this);
+            break;
+          case 'Escape':
+            closeAllMegaMenus();
+            break;
         }
       });
+    });
+    
+    // Keyboard navigation for menu items
+    document.addEventListener("keydown", function (e) {
+      if (e.target.matches(".menu-content a")) {
+        const $this = $(e.target);
+        const $menu = $this.closest('.menu-content');
+        const $menuItems = $menu.find('a');
+        const currentIndex = $menuItems.index($this);
+        
+        switch(e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            const nextIndex = (currentIndex + 1) % $menuItems.length;
+            $menuItems.eq(nextIndex).focus();
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            const prevIndex = currentIndex === 0 ? $menuItems.length - 1 : currentIndex - 1;
+            $menuItems.eq(prevIndex).focus();
+            break;
+          case 'Escape':
+            closeAllMegaMenus();
+            break;
+        }
+      }
     });
 
     // Close menu when clicking outside
     document.addEventListener("click", function (e) {
       const isInsideMenu = e.target.closest(".megamenu");
       if (!isInsideMenu) {
-        document.querySelectorAll(".megamenu").forEach(menu => {
-          const content = menu.querySelector(".menu-content");
-          const backdrop = menu.querySelector(".megamenu-backdrop");
-          const toggleBtn = menu.querySelector(".main-menu.dropdown-toggle");
-          const up = toggleBtn.querySelector(".up-arrow");
-          const down = toggleBtn.querySelector(".down-arrow");
-
-          content.classList.add("hidden");
-          backdrop.classList.add("hidden");
-          toggleBtn.classList.remove("active");
-          up.classList.add("hidden");
-          down.classList.remove("hidden");
-        });
+        closeAllMegaMenus();
       }
     });
+    
+    // Focus management
+    document.querySelectorAll(".megamenu").forEach(megamenu => {
+      megamenu.addEventListener("focusout", function (e) {
+        // Use a longer timeout to allow focus to move between menu items
+        setTimeout(() => {
+          // Check if the new focus target is still within this megamenu
+          if (!megamenu.contains(document.activeElement)) {
+            closeMegaMenu(megamenu);
+          }
+        }, 100);
+      });
+    });
+    
+    // Helper functions
+    function toggleMegaMenu(toggle) {
+      const megamenu = toggle.closest(".megamenu");
+      const menuContent = megamenu.querySelector(".menu-content");
+      const bgopacity = megamenu.querySelector(".megamenu-backdrop");
+      const upArrow = toggle.querySelector(".up-arrow");
+      const downArrow = toggle.querySelector(".down-arrow");
+
+      // Check if current menu is already open
+      const isCurrentMenuOpen = !menuContent.classList.contains("hidden");
+      
+      // Close all other menus first
+      closeAllMegaMenus();
+
+      // If current menu was closed, open it
+      if (isCurrentMenuOpen) {
+        // Menu was open, now it's closed by closeAllMegaMenus()
+      } else {
+        // Menu was closed, open it
+        openMegaMenu(toggle);
+      }
+    }
+    
+    function openMegaMenu(toggle) {
+      const megamenu = toggle.closest(".megamenu");
+      const menuContent = megamenu.querySelector(".menu-content");
+      const bgopacity = megamenu.querySelector(".megamenu-backdrop");
+      const upArrow = toggle.querySelector(".up-arrow");
+      const downArrow = toggle.querySelector(".down-arrow");
+      
+      menuContent.classList.remove("hidden");
+      bgopacity.classList.remove("hidden");
+      toggle.classList.add("active");
+      toggle.setAttribute("aria-expanded", "true");
+      upArrow.classList.remove("hidden");
+      downArrow.classList.add("hidden");
+      
+      // Make menu items focusable
+      menuContent.querySelectorAll("a").forEach(link => {
+        link.setAttribute("tabindex", "0");
+      });
+    }
+    
+    function closeMegaMenu(megamenu) {
+      const menuContent = megamenu.querySelector(".menu-content");
+      const bgopacity = megamenu.querySelector(".megamenu-backdrop");
+      const toggle = megamenu.querySelector(".main-menu.dropdown-toggle");
+      const upArrow = toggle.querySelector(".up-arrow");
+      const downArrow = toggle.querySelector(".down-arrow");
+      
+      menuContent.classList.add("hidden");
+      bgopacity.classList.add("hidden");
+      toggle.classList.remove("active");
+      toggle.setAttribute("aria-expanded", "false");
+      upArrow.classList.add("hidden");
+      downArrow.classList.remove("hidden");
+      
+      // Make menu items non-focusable
+      menuContent.querySelectorAll("a").forEach(link => {
+        link.setAttribute("tabindex", "-1");
+      });
+    }
+    
+    function closeAllMegaMenus() {
+      document.querySelectorAll(".megamenu").forEach(megamenu => {
+        closeMegaMenu(megamenu);
+      });
+    }
+    
+    function focusFirstMenuItem(toggle) {
+      const megamenu = toggle.closest(".megamenu");
+      const menuContent = megamenu.querySelector(".menu-content");
+      const firstItem = menuContent.querySelector("a");
+      if (firstItem) {
+        firstItem.focus();
+      }
+    }
+    
   } else {
-    // Hover-based menu logic
+    // Hover-based menu logic with enhanced keyboard navigation
     const megamenus = document.querySelectorAll(".megamenu");
     
     megamenus.forEach(megamenu => {
       const menuContent = megamenu.querySelector(".menu-content");
       const backdrop = megamenu.querySelector(".megamenu-backdrop");
+      const toggle = megamenu.querySelector(".main-menu");
+      
+      // Enhanced keyboard support for hover menus
+      toggle.addEventListener("keydown", function(e) {
+        switch(e.key) {
+          case 'Enter':
+          case ' ':
+            e.preventDefault();
+            toggleMegaMenuHover(this);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            openMegaMenuHover(this);
+            focusFirstMenuItemHover(this);
+            break;
+          case 'Escape':
+            closeAllMegaMenusHover();
+            break;
+        }
+      });
       
       // Close menu when mouse leaves the megamenu area
       megamenu.addEventListener("mouseleave", function() {
-        // Force hide the menu by removing all hover classes and setting styles directly
-        menuContent.style.opacity = "0";
-        menuContent.style.visibility = "hidden";
-        backdrop.style.opacity = "0";
-        backdrop.style.visibility = "hidden";
+        // Only close if not focused
+        if (!megamenu.contains(document.activeElement)) {
+          closeMegaMenuHover(megamenu);
+        }
       });
       
       // Ensure menu opens when mouse enters
       megamenu.addEventListener("mouseenter", function() {
-        // Force show the menu by setting styles directly
-        menuContent.style.opacity = "1";
-        menuContent.style.visibility = "visible";
-        backdrop.style.opacity = "1";
-        backdrop.style.visibility = "visible";
+        openMegaMenuHover(toggle);
       });
       
       // Close menu when mouse leaves the menu content area specifically
       menuContent.addEventListener("mouseleave", function() {
-        // Force hide the menu when leaving the content area
-        menuContent.style.opacity = "0";
-        menuContent.style.visibility = "hidden";
-        backdrop.style.opacity = "0";
-        backdrop.style.visibility = "hidden";
+        if (!megamenu.contains(document.activeElement)) {
+          closeMegaMenuHover(megamenu);
+        }
       });
       
       // Ensure menu stays open when mouse enters the content area
       menuContent.addEventListener("mouseenter", function() {
-        // Keep menu visible when entering the content area
-        menuContent.style.opacity = "1";
-        menuContent.style.visibility = "visible";
-        backdrop.style.opacity = "1";
-        backdrop.style.visibility = "visible";
+        openMegaMenuHover(toggle);
       });
+    });
+    
+    // Keyboard navigation for menu items in hover mode
+    document.addEventListener("keydown", function (e) {
+      if (e.target.matches(".menu-content a")) {
+        const $this = $(e.target);
+        const $menu = $this.closest('.menu-content');
+        const $menuItems = $menu.find('a');
+        const currentIndex = $menuItems.index($this);
+        
+        switch(e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            const nextIndex = (currentIndex + 1) % $menuItems.length;
+            $menuItems.eq(nextIndex).focus();
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            const prevIndex = currentIndex === 0 ? $menuItems.length - 1 : currentIndex - 1;
+            $menuItems.eq(prevIndex).focus();
+            break;
+          case 'Escape':
+            closeAllMegaMenusHover();
+            break;
+        }
+      }
     });
     
     // Close all menus when clicking outside
     document.addEventListener("click", function (e) {
       const isInsideMenu = e.target.closest(".megamenu");
       if (!isInsideMenu) {
-        document.querySelectorAll(".megamenu").forEach(menu => {
-          const content = menu.querySelector(".menu-content");
-          const backdrop = menu.querySelector(".megamenu-backdrop");
-          
-          // Force hide the menu by setting styles directly
-          content.style.opacity = "0";
-          content.style.visibility = "hidden";
-          backdrop.style.opacity = "0";
-          backdrop.style.visibility = "hidden";
-        });
+        closeAllMegaMenusHover();
       }
     });
     
     // Close menu when pressing Escape key
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
-        document.querySelectorAll(".megamenu").forEach(menu => {
-          const content = menu.querySelector(".menu-content");
-          const backdrop = menu.querySelector(".megamenu-backdrop");
-          
-          // Force hide the menu by setting styles directly
-          content.style.opacity = "0";
-          content.style.visibility = "hidden";
-          backdrop.style.opacity = "0";
-          backdrop.style.visibility = "hidden";
-        });
+        closeAllMegaMenusHover();
       }
     });
+    
+    // Focus management for hover mode
+    document.querySelectorAll(".megamenu").forEach(megamenu => {
+      megamenu.addEventListener("focusout", function (e) {
+        // Use a longer timeout to allow focus to move between menu items
+        setTimeout(() => {
+          // Check if the new focus target is still within this megamenu
+          if (!megamenu.contains(document.activeElement)) {
+            closeMegaMenuHover(megamenu);
+          }
+        }, 100);
+      });
+    });
+    
+    // Helper functions for hover mode
+    function toggleMegaMenuHover(toggle) {
+      const megamenu = toggle.closest(".megamenu");
+      const menuContent = megamenu.querySelector(".menu-content");
+      
+      // Close all other menus first
+      document.querySelectorAll(".megamenu").forEach(menu => {
+        if (menu !== megamenu) {
+          closeMegaMenuHover(menu);
+        }
+      });
+      
+      if (menuContent.style.opacity === "1") {
+        closeMegaMenuHover(megamenu);
+      } else {
+        openMegaMenuHover(toggle);
+      }
+    }
+    
+    function openMegaMenuHover(toggle) {
+      const megamenu = toggle.closest(".megamenu");
+      const menuContent = megamenu.querySelector(".menu-content");
+      const backdrop = megamenu.querySelector(".megamenu-backdrop");
+      const upArrow = toggle.querySelector(".up-arrow");
+      const downArrow = toggle.querySelector(".down-arrow");
+      
+      menuContent.style.opacity = "1";
+      menuContent.style.visibility = "visible";
+      backdrop.style.opacity = "1";
+      backdrop.style.visibility = "visible";
+      
+      // Update arrow states
+      upArrow.classList.remove("hidden");
+      downArrow.classList.add("hidden");
+      
+      // Make menu items focusable
+      menuContent.querySelectorAll("a").forEach(link => {
+        link.setAttribute("tabindex", "0");
+      });
+    }
+    
+    function closeMegaMenuHover(megamenu) {
+      const menuContent = megamenu.querySelector(".menu-content");
+      const backdrop = megamenu.querySelector(".megamenu-backdrop");
+      const toggle = megamenu.querySelector(".main-menu");
+      const upArrow = toggle.querySelector(".up-arrow");
+      const downArrow = toggle.querySelector(".down-arrow");
+      
+      menuContent.style.opacity = "0";
+      menuContent.style.visibility = "hidden";
+      backdrop.style.opacity = "0";
+      backdrop.style.visibility = "hidden";
+      
+      // Reset arrow states
+      upArrow.classList.add("hidden");
+      downArrow.classList.remove("hidden");
+      
+      // Make menu items non-focusable
+      menuContent.querySelectorAll("a").forEach(link => {
+        link.setAttribute("tabindex", "-1");
+      });
+    }
+    
+    function closeAllMegaMenusHover() {
+      document.querySelectorAll(".megamenu").forEach(megamenu => {
+        closeMegaMenuHover(megamenu);
+      });
+    }
+    
+    function focusFirstMenuItemHover(toggle) {
+      const megamenu = toggle.closest(".megamenu");
+      const menuContent = megamenu.querySelector(".menu-content");
+      const firstItem = menuContent.querySelector("a");
+      if (firstItem) {
+        firstItem.focus();
+      }
+    }
   }
 });
 </script>
