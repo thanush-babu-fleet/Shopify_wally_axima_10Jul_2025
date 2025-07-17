@@ -3,7 +3,7 @@
 <div id="cartOverlay" class="cartoverlay hidden"></div>
 <div id="cartDrawer"
     class="cart-main-drawer mb-4 hidden bg-white fixed right-4 w-11/12 md:w-[360px] z-10">
-    <div id="cartItems" class="cart-drawer overflow-y-auto flex flex-col justify-between">
+    <div id="cartItems" class="cart-drawer overflow-y-auto flex flex-col justify-between" tabindex="-1">
         <div class="cart-area">
             <div class="cart-header bg-white pt-4 px-4{% if settings.layout_style == 'attached' %} border-b {% endif %}">
                 <div class="cart-title flex items-center">
@@ -44,16 +44,14 @@
                         {% endfor %}
                     </ul>
                     {% endif %}
-                    <a href="/collections/all" id="buyNowButton">
-                        <button class="my-6 secondary-btn btn-small flex flex-row font-semibold items-center justify-center gap-3">
-                            {{ 'global.cart.buynow' | t | default: 'Buy Now'}}
-                            <svg width="16" height="14" viewBox="0 0 16 14" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" clip-rule="evenodd"
-                                    d="M9.22915 1.13862C8.95579 0.865252 8.51257 0.865252 8.2392 1.13862C7.96584 1.41199 7.96584 1.8552 8.2392 2.12857L12.6692 6.55859H1.23418C0.84758 6.55859 0.53418 6.87199 0.53418 7.25859C0.53418 7.64519 0.84758 7.95859 1.23418 7.95859H12.6692L8.2392 12.3886C7.96584 12.662 7.96584 13.1052 8.2392 13.3786C8.51257 13.6519 8.95579 13.6519 9.22915 13.3786L14.8542 7.75357C14.9213 7.68645 14.9719 7.6091 15.0061 7.52654C15.0391 7.44679 15.0579 7.35961 15.0591 7.26819C15.0593 7.2538 15.0591 7.2394 15.0584 7.22501C15.0504 7.05722 14.9823 6.89176 14.8542 6.76362L9.22915 1.13862Z"
-                                    fill="currentColor" />
-                            </svg>
-                        </button>
+                    <a href="/collections/all" id="buyNowButton" class="my-6 secondary-btn btn-small flex flex-row font-semibold items-center justify-center gap-3">
+                        {{ 'global.cart.buynow' | t | default: 'Buy Now'}}
+                        <svg width="16" height="14" viewBox="0 0 16 14" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M9.22915 1.13862C8.95579 0.865252 8.51257 0.865252 8.2392 1.13862C7.96584 1.41199 7.96584 1.8552 8.2392 2.12857L12.6692 6.55859H1.23418C0.84758 6.55859 0.53418 6.87199 0.53418 7.25859C0.53418 7.64519 0.84758 7.95859 1.23418 7.95859H12.6692L8.2392 12.3886C7.96584 12.662 7.96584 13.1052 8.2392 13.3786C8.51257 13.6519 8.95579 13.6519 9.22915 13.3786L14.8542 7.75357C14.9213 7.68645 14.9719 7.6091 15.0061 7.52654C15.0391 7.44679 15.0579 7.35961 15.0591 7.26819C15.0593 7.2538 15.0591 7.2394 15.0584 7.22501C15.0504 7.05722 14.9823 6.89176 14.8542 6.76362L9.22915 1.13862Z"
+                                fill="currentColor" />
+                        </svg>
                     </a>
                 </div>
             </div>
@@ -132,9 +130,67 @@
     cartItems.style.height = `${cartContentHeight}px`;
   }
 
+  // Tab focus trap for cartItems
+  function initCartItemsFocusTrap() {
+    const cartItems = document.getElementById('cartItems');
+    if (!cartItems) return;
+
+    function handleKeyDown(e) {
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = cartItems.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      
+      const visibleElements = Array.from(focusableElements).filter(el => {
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && 
+               style.visibility !== 'hidden' && 
+               el.offsetParent !== null &&
+               !el.disabled;
+      });
+
+      if (visibleElements.length === 0) return;
+
+      const firstElement = visibleElements[0];
+      const lastElement = visibleElements[visibleElements.length - 1];
+      const currentElement = document.activeElement;
+
+      // If focus is not within cartItems, focus the first element
+      if (!cartItems.contains(currentElement)) {
+        e.preventDefault();
+        firstElement.focus();
+        return;
+      }
+
+      // Handle Tab navigation
+      if (e.shiftKey) {
+        // Shift + Tab: move backwards
+        if (currentElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        // Tab: move forwards
+        if (currentElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+
+    cartItems.addEventListener('keydown', handleKeyDown);
+    
+    // Store cleanup function
+    cartItems._removeFocusTrap = () => {
+      cartItems.removeEventListener('keydown', handleKeyDown);
+    };
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     updateCartDrawerTop();
     initTermsCheckbox();
+    initCartItemsFocusTrap();
   });
 
   window.addEventListener('load', updateCartDrawerTop);
@@ -143,36 +199,6 @@
 </script>
                               
 <script>
-  // Accessibility: Trap focus within the cart drawer modal
-  function trapFocusInModal(modal) {
-    function getFocusableEls() {
-      return modal.querySelectorAll(
-        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-      );
-    }
-    function handleTrap(e) {
-      if (e.key === 'Tab') {
-        const focusableEls = Array.from(getFocusableEls());
-        if (!focusableEls.length) return;
-        const firstFocusableEl = focusableEls[0];
-        const lastFocusableEl = focusableEls[focusableEls.length - 1];
-        if (e.shiftKey) {
-          if (document.activeElement === firstFocusableEl || !modal.contains(document.activeElement)) {
-            e.preventDefault();
-            lastFocusableEl.focus();
-          }
-        } else {
-          if (document.activeElement === lastFocusableEl || !modal.contains(document.activeElement)) {
-            e.preventDefault();
-            firstFocusableEl.focus();
-          }
-        }
-      }
-    }
-    modal.addEventListener('keydown', handleTrap);
-    modal._removeTrap = () => modal.removeEventListener('keydown', handleTrap);
-  }
-
   document.addEventListener('DOMContentLoaded', function () {
     const openBtn = document.getElementById('openCartDrawer');
     const closeBtn = document.getElementById('closeCartDrawer');
@@ -185,27 +211,35 @@
 
       requestAnimationFrame(() => {
         cartDrawer.classList.add('open');
-        // Focus the first focusable element in the cart drawer
-        const focusableEls = cartDrawer.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
-        if (focusableEls.length) {
-          focusableEls[0].focus();
-        }
       });
-      if (cartDrawer) trapFocusInModal(cartDrawer);
     });
 
     closeBtn?.addEventListener('click', () => {
+      closeCartDrawer();
+    });
+
+    cartOverlay?.addEventListener('click', () => {
+      closeCartDrawer();
+    });
+    
+    function closeCartDrawer() {
       cartDrawer.classList.remove('open');
       cartOverlay.classList.add('hidden');
 
       setTimeout(() => {
         cartDrawer.classList.add('hidden');
-        if (cartDrawer && cartDrawer._removeTrap) cartDrawer._removeTrap();
       }, 400);
-    });
-
-    cartOverlay?.addEventListener('click', () => {
-      closeBtn?.click(); 
+    }
+    
+    // Global escape key listener
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const isCartOpen = !cartDrawer.classList.contains('hidden') && cartDrawer.classList.contains('open');
+        if (isCartOpen) {
+          e.preventDefault();
+          closeCartDrawer();
+        }
+      }
     });
   });
 

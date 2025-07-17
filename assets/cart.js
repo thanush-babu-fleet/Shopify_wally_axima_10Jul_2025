@@ -8,12 +8,28 @@ document.addEventListener("DOMContentLoaded", function () {
     cartDrawer.classList.remove("hidden");
     cartOverlay.classList.remove("hidden");
     document.body.classList.add("overflow-hidden");
+    
+    // Focus the first focusable element in the cart drawer
+    setTimeout(() => {
+      const focusableEls = cartDrawer.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+      if (focusableEls.length) {
+        focusableEls[0].focus();
+      }
+    }, 100);
   }
 
   function closeCartDrawer() {
+    // Store the cart button for focus restoration
+    const cartButton = document.getElementById("openCartDrawer");
+    
     cartDrawer.classList.add("hidden");
     cartOverlay.classList.add("hidden");
     document.body.classList.remove("overflow-hidden");
+    
+    // Return focus to the cart button
+    if (cartButton) {
+      cartButton.focus();
+    }
   }
 
   openCartBtn?.addEventListener("click", openCartDrawer);
@@ -31,6 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && !cartDrawer.classList.contains("hidden")) {
+      e.preventDefault();
       closeCartDrawer();
     }
   });
