@@ -48,132 +48,136 @@
       {%- endif -%}
     </div>
     <div class="testimonial-video-slider-{{ section.id }}">
-          {% for block in section.blocks %}
-            {% if block.type == 'testimonial' %}
+      {% for block in section.blocks %}
+        {% if block.type == 'testimonial' %}
             {% assign product = block.settings.product_link %}
-                <div class="overflow-hidden h-full" style="background-color: {{ section.settings.testimonial_background }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}">
-                  <div class="relative aspect-[3/4]">
-                    {% if block.settings.video_thumbnail != blank %}
-                      <img
-                        src="{{ block.settings.video_thumbnail | img_url: 'master' }}"
-                        alt="Testimonial Thumbnail"
-                        class="object-cover w-full h-full video-thumb"
-                      >
-                    {% elsif block.settings.product_link != nil %}
-                      <img
-                        src="{{ block.settings.product_link.featured_image | img_url: 'master' }}"
-                        alt="{{ block.settings.product_link.title }}"
-                        class="object-cover w-full h-full video-thumb"
-                      >
+            <div class="overflow-hidden h-full" style="background-color: {{ section.settings.testimonial_background }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}">
+              <div class="relative aspect-[3/4]">
+                {% if block.settings.video_thumbnail != blank %}
+                  <img
+                    src="{{ block.settings.video_thumbnail | img_url: 'master' }}"
+                    alt="Testimonial Thumbnail"
+                    class="object-cover w-full h-full video-thumb"
+                  >
+                {% elsif block.settings.product_link != nil %}
+                  <img
+                    src="{{ block.settings.product_link.featured_image | img_url: 'master' }}"
+                    alt="{{ block.settings.product_link.title }}"
+                    class="object-cover w-full h-full video-thumb"
+                  >
+                {% endif %}
+
+                {%- if block.settings.product_link != nil and block.settings.product_link.images.size > 0 -%}
+                  <div class="product-images-overlay absolute left-2 bottom-2 flex -space-x-2 z-20 space-x-2" tabindex="-1" aria-hidden="true">
+                    {%- assign images = block.settings.product_link.images | slice: 0, 4 -%}
+                    {%- for image in images -%}
+                      {% comment %} <a href="{{ block.settings.product_link.url }}" class="cursor-pointer" tabindex="-1" aria-hidden="true"> {% endcomment %}
+                       <div>
+                         <img src="{{ image | img_url: '80x' }}" alt="{{ block.settings.product_link.title }}" class="w-auto h-16" tabindex="-1" aria-hidden="true" />
+                       </div>
+                      {% comment %} </a> {% endcomment %}
+                    {%- endfor -%}
+                  </div>
+                {%- endif -%}
+
+                <button class="absolute inset-0 flex items-center justify-center video-play-btn z-10">
+                  <div class="bg-black border border-white w-12 h-12 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </button>
+                <div class="video-player absolute inset-0 hidden">
+                  {% if block.settings.video_picker != blank %}
+                    {{ block.settings.video_picker | video_tag: controls: true, autoplay: false, loop: false, muted: false }}
+                  {% elsif block.settings.video_url != blank %}
+                    {% if block.settings.video_url contains 'youtube' %}
+                      <iframe class="w-full h-full" src="{{ block.settings.video_url | replace: 'watch?v=', 'embed/' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    {% elsif block.settings.video_url contains 'vimeo' %}
+                      <iframe class="w-full h-full" src="{{ block.settings.video_url | replace: 'vimeo.com', 'player.vimeo.com/video' }}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
                     {% endif %}
+                  {% endif %}
+                </div>
+              </div>
 
-                    {%- if block.settings.product_link != nil and block.settings.product_link.images.size > 0 -%}
-                      <div class="product-images-overlay absolute left-2 bottom-2 flex -space-x-2 z-20 space-x-2">
-                        {%- assign images = block.settings.product_link.images | slice: 0, 4 -%}
-                        {%- for image in images -%}
-                          <a href="{{ block.settings.product_link.url }}" class="cursor-pointer">
-                            <img src="{{ image | img_url: '80x' }}" alt="{{ block.settings.product_link.title }}" class="w-auto h-16" />
-                          </a>
-                        {%- endfor -%}
-                      </div>
-                    {%- endif -%}
+              <div class="flex flex-row gap-2 p-4">
+                {% if product != nil %}
+                  <div class="w-16 h-auto">
+                    <a href="{{ product.url }}" class="cursor-pointer">
+                      <img src="{{ product.featured_image | img_url: '80x' }}" alt="{{ product.title }}">
+                    </a>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <a href="{{ product.url }}" class="cursor-pointer">
+                      <p class="text-xl leading-normal font-medium">{{ product.title }}</p>
+                    </a>
+                    <div class="bottom flex flex-row items-center gap-4">
+                      {%- assign product_handle = block.settings.product_link | split: '/products/' | last -%}
+                      {%- assign product = all_products[product_handle] -%}
 
-                    <button class="absolute inset-0 flex items-center justify-center video-play-btn z-10">
-                      <div class="bg-black border border-white w-12 h-12 rounded-full flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
+                      {%- assign is_sold_out = false -%}
+                      {%- if product and product.available == false -%}
+                        {%- assign is_sold_out = true -%}
+                      {%- endif -%}
+
+                      {% if product %}
+                        <div class="">
+                          {%- if settings.enable_quick_add -%}
+                            <div class="relative w-max {% if settings.content_alignment == 'center' %} mx-auto {% endif %}">
+                              <button class="add-to-cart cart-btn" data-id="{{ product.variants.first.id }}" aria-label="Add to Cart" id="cart_icon_{{ product.id }}"{% if is_sold_out == true %} disabled{% endif %}>
+                                <span class="text-white">{{ 'cart-icon.svg' | inline_asset_content }}</span>
+                              </button>
+
+                              {%- assign total_quantity = 0 -%}
+                              {%- for variant in product.variants -%}
+                                {%- for item in cart.items -%}
+                                  {%- if item.variant_id == variant.id -%}
+                                    {%- assign total_quantity = total_quantity | plus: item.quantity -%}
+                                  {%- endif -%}
+                                {%- endfor -%}
+                              {%- endfor -%}
+
+                              <p id="testimonial_quantity_{{ product.id }}"
+                                data-product-id="{{ product.id }}"
+                                class="quantity absolute -top-1 -right-1 bg-secondary w-5 h-5 text-[10px] flex items-center justify-center rounded-full 
+                                {% if total_quantity == 0 or total_quantity == blank %} opacity-0 {% endif %}">
+                                {%- if total_quantity > 0 -%}
+                                  {{ total_quantity }}
+                                {%- endif -%}
+                              </p>
+                            </div>
+                          {%- endif -%}
+                        </div>
+                      {% endif %}
+                      <div class="flex flex-col gap-1">
+                        <p class="text-base font-bold leading-normal">{{ product.price | money }}</p>
+                        <div class="flex justify-center items-center">
+                          {% assign rating = block.settings.rating | plus: 0 %}
+                          {% for i in (1..5) %}
+                            {% if i <= rating %}
+                              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.5 0.0839844L7.05175 3.44818L10.7308 3.88439L8.01079 6.39979L8.73282 10.0336L5.5 8.22398L2.26718 10.0336L2.98921 6.39979L0.269189 3.88439L3.94825 3.44818L5.5 0.0839844Z" fill="#000000"/>
+                              </svg>
+                            {% else %}
+                              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.5 0.0839844L7.05175 3.44818L10.7308 3.88439L8.01079 6.39979L8.73282 10.0336L5.5 8.22398L2.26718 10.0336L2.98921 6.39979L0.269189 3.88439L3.94825 3.44818L5.5 0.0839844Z" fill="#CFD5CB"/>
+                              </svg>
+                            {% endif %}
+                          {% endfor %}
+                        </div>
                       </div>
-                    </button>
-                    <div class="video-player absolute inset-0 hidden">
-                      {% if block.settings.video_picker != blank %}
-                        {{ block.settings.video_picker | video_tag: controls: true, autoplay: false, loop: false, muted: false }}
-                      {% elsif block.settings.video_url != blank %}
-                        {% if block.settings.video_url contains 'youtube' %}
-                          <iframe class="w-full h-full" src="{{ block.settings.video_url | replace: 'watch?v=', 'embed/' }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        {% elsif block.settings.video_url contains 'vimeo' %}
-                          <iframe class="w-full h-full" src="{{ block.settings.video_url | replace: 'vimeo.com', 'player.vimeo.com/video' }}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-                        {% endif %}
+                      {%- if is_sold_out -%}
+                        <span class="{{ badge_position }} text-xs font-semibold px-3 py-1 z-10" style="border-radius: {{ settings.badge_corner_radius }}px; background-color: {{ settings.sold_out_bg }}; color: {{ settings.badge_text_color }}">
+                          Sold Out
+                        </span>
                       {% endif %}
                     </div>
                   </div>
-
-                  <div class="flex flex-row gap-2 p-4">
-                    {% if product != nil %}
-                      <div class="w-16 h-auto">
-                        <a href="{{ product.url }}" class="cursor-pointer">
-                          <img src="{{ product.featured_image | img_url: '80x' }}" alt="{{ product.title }}">
-                        </a>
-                      </div>
-                      <div class="flex flex-col gap-2">
-                        <p class="text-xl leading-normal font-medium">{{ product.title }}</p>
-                      <div class="bottom flex flex-row items-center gap-4">
-                          {%- assign product_handle = block.settings.product_link | split: '/products/' | last -%}
-                          {%- assign product = all_products[product_handle] -%}
-
-                          {%- assign is_sold_out = false -%}
-                          {%- if product and product.available == false -%}
-                            {%- assign is_sold_out = true -%}
-                          {%- endif -%}
-
-                          {% if product %}
-                            <div class="">
-                              {%- if settings.enable_quick_add -%}
-                                <div class="relative w-max {% if settings.content_alignment == 'center' %} mx-auto {% endif %}">
-                                  <button class="add-to-cart cart-btn" data-id="{{ product.variants.first.id }}" aria-label="Add to Cart" id="cart_icon_{{ product.id }}"{% if is_sold_out == true %} disabled{% endif %}>
-                                    <span class="text-white">{{ 'cart-icon.svg' | inline_asset_content }}</span>
-                                  </button>
-
-                                  {%- assign total_quantity = 0 -%}
-                                  {%- for variant in product.variants -%}
-                                    {%- for item in cart.items -%}
-                                      {%- if item.variant_id == variant.id -%}
-                                        {%- assign total_quantity = total_quantity | plus: item.quantity -%}
-                                      {%- endif -%}
-                                    {%- endfor -%}
-                                  {%- endfor -%}
-
-                                  <p id="testimonial_quantity_{{ product.id }}"
-                                    data-product-id="{{ product.id }}"
-                                    class="quantity absolute -top-1 -right-1 bg-secondary w-5 h-5 text-[10px] flex items-center justify-center rounded-full 
-                                    {% if total_quantity == 0 or total_quantity == blank %} opacity-0 {% endif %}">
-                                    {%- if total_quantity > 0 -%}
-                                      {{ total_quantity }}
-                                    {%- endif -%}
-                                  </p>
-                                </div>
-                              {%- endif -%}
-                            </div>
-                          {% endif %}
-                          <div class="flex flex-col gap-1">
-                            <p class="text-base font-bold leading-normal">{{ product.price | money }}</p>
-                            <div class="flex justify-center items-center">
-                            {% assign rating = block.settings.rating | plus: 0 %}
-                              {% for i in (1..5) %}
-                                {% if i <= rating %}
-                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M5.5 0.0839844L7.05175 3.44818L10.7308 3.88439L8.01079 6.39979L8.73282 10.0336L5.5 8.22398L2.26718 10.0336L2.98921 6.39979L0.269189 3.88439L3.94825 3.44818L5.5 0.0839844Z" fill="#000000"/>
-                                </svg>
-                                {% else %}
-                                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M5.5 0.0839844L7.05175 3.44818L10.7308 3.88439L8.01079 6.39979L8.73282 10.0336L5.5 8.22398L2.26718 10.0336L2.98921 6.39979L0.269189 3.88439L3.94825 3.44818L5.5 0.0839844Z" fill="#CFD5CB"/>
-                                </svg>
-                                {% endif %}
-                              {% endfor %}
-                              </div>
-                           </div>
-                          {%- if is_sold_out -%}
-                            <span class="{{ badge_position }} text-xs font-semibold px-3 py-1 z-10" style="border-radius: {{ settings.badge_corner_radius }}px; background-color: {{ settings.sold_out_bg }}; color: {{ settings.badge_text_color }}">
-                              Sold Out
-                            </span>
-                          {% endif %}
-                          </div>
-                        </div>
-                        {% endif %}
-                      </div>
-                </div>
-            {% endif %}
-          {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+        {% endif %}
+      {% endfor %}
     </div>
   </div>
 </div>
