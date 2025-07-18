@@ -4,12 +4,12 @@
 {% assign bg_color = section.settings.bg_color %}
 
 {% style %} 
-.accordion_description p{
+.result-accordian-{{ section.id }} .accordion_description p{
   color:{{ text_color }};
 }
 {% endstyle %}
 
-<section class="{% if settings.layout_style == 'detached' %} container px-4 py-4 mx-auto {% endif %} my-8 md:my-10" style="background-color: {{ bg_color }}">
+<section class="result-accordian-{{ section.id }} {% if settings.layout_style == 'detached' %} container px-4 py-4 mx-auto {% endif %} my-8 md:my-10" style="background-color: {{ bg_color }}">
  {% if section.settings.tagline != blank %}
    <p class="tagline font-semibold" style="text-align: {{ section.settings.content_alignment }}; color: {{ text_color }}">{{ section.settings.tagline }}</p>
  {% endif %}
@@ -69,7 +69,11 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const details = document.querySelectorAll('details');
+    const section = document.querySelector('.result-accordian-{{ section.id }}');
+    if (!section) return;
+    
+    const details = section.querySelectorAll('details');
+    const textColor = '{{ text_color }}';
     
     details.forEach(detail => {
       const summary = detail.querySelector('summary');
@@ -78,12 +82,12 @@
       summary.addEventListener('click', (e) => {
         e.preventDefault();
         
-        // Close all other details
+        // Close all other details in this section
         details.forEach(otherDetail => {
           if (otherDetail !== detail) {
             otherDetail.removeAttribute('open');
             const otherIcon = otherDetail.querySelector('.icon-chevron');
-            otherIcon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="#273025"/>';
+            otherIcon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="' + textColor + '"/>';
           }
         });
         
@@ -91,10 +95,10 @@
         const isOpen = detail.hasAttribute('open');
         if (isOpen) {
           detail.removeAttribute('open');
-          icon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="#273025"/>';
+          icon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M0.880806 0.69233C1.15417 0.418963 1.59739 0.418963 1.87076 0.69233L7.00078 5.82236L12.1308 0.69233C12.4042 0.418963 12.8474 0.418963 13.1208 0.69233C13.3941 0.965697 13.3941 1.40891 13.1208 1.68228L7.49576 7.30728C7.22239 7.58065 6.77917 7.58065 6.50581 7.30728L0.880806 1.68228C0.60744 1.40891 0.60744 0.965697 0.880806 0.69233Z" fill="' + textColor + '"/>';
         } else {
           detail.setAttribute('open', '');
-          icon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M13.1192 7.30767C12.8458 7.58104 12.4026 7.58104 12.1292 7.30767L6.99922 2.17765L1.86919 7.30767C1.59583 7.58104 1.15261 7.58104 0.879244 7.30767C0.605877 7.0343 0.605877 6.59109 0.879244 6.31772L6.50424 0.692721C6.77761 0.419355 7.22083 0.419354 7.49419 0.692721L13.1192 6.31772C13.3926 6.59109 13.3926 7.0343 13.1192 7.30767Z" fill="#273025"/>';
+          icon.innerHTML = '<path fill-rule="evenodd" clip-rule="evenodd" d="M13.1192 7.30767C12.8458 7.58104 12.4026 7.58104 12.1292 7.30767L6.99922 2.17765L1.86919 7.30767C1.59583 7.58104 1.15261 7.58104 0.879244 7.30767C0.605877 7.0343 0.605877 6.59109 0.879244 6.31772L6.50424 0.692721C6.77761 0.419355 7.22083 0.419354 7.49419 0.692721L13.1192 6.31772C13.3926 6.59109 13.3926 7.0343 13.1192 7.30767Z" fill="' + textColor + '"/>';
         }
       });
     });
