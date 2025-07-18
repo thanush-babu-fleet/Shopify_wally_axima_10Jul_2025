@@ -80,7 +80,7 @@
         {% else %}
           <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-{{ section.settings.columns_desktop }}{% if settings.layout_style == 'detached' %} card-space{% endif %}">
             {% for product in collection.products %}
-              {% render 'product-card', product: product %}
+              {% render 'product-card', product: product, hover:section.settings.enable_hover, hover_effect:section.settings.hover_effect %}
             {% endfor %}
           </div>
         {% endif %}
@@ -539,6 +539,27 @@
       "id": "show_filter_count",
       "label": "Show filter values count",
       "default": true
+    },
+    {
+      "type": "header",
+      "content": "Transition"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_hover",
+      "label": "Enable hover effect",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "hover_effect",
+      "label": "Hover Effect",
+      "options": [
+        { "value": "basic", "label": "Basic" },
+        { "value": "enhanced", "label": "Enhanced" }
+      ],
+      "visible_if": "{{ section.settings.enable_hover == true }}",
+      "default": "basic"
     }
   ]
 }

@@ -27,33 +27,49 @@
   }
 </style>
 
-<div class="product-card relative h-full group overflow-hidden flex flex-col" style="background-color: {{  settings.product_bg }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}">
+<div class="product-card relative h-full group overflow-hidden flex flex-col focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" tabindex="0" style="background-color: {{  settings.product_bg }}; {% if settings.border_width > 0 %}border-radius: {{ settings.border_radius }}px;{% endif %} border-width: {{ settings.border_width }}px; border-style: {{ settings.border_style }}">
   <div class="relative overflow-hidden product-image {{ aspect_ratio_class }} {% if settings.border_width > 0 %} border-b {% endif %}" style="border-width: {{ settings.image_border_width }}px; border-style: {{ settings.image_border_style }};border-radius: {{ settings.image_border_radius }}px;">
-    <a href="{{ product.url }}" tabindex="-1" role="link" aria-disabled="true" class="h-full block">
+    <a href="{{ product.url }}" class="h-full block focus:outline-none" tabindex="-1">
     {%- assign img_alt = product.featured_image.alt | default: shop.name | escape -%}
     {% if hover %}
       {% if hover_effect == "enhanced" %}
-        {{ product.featured_image | image_url: width: 600 | image_tag:
-          class: 'w-full h-full object-cover transition duration-1000 group-hover:opacity-0 group-hover:scale-105',
-          alt: img_alt,
-          preload: true
-        }}
+        {% if settings.show_additional_images and product.images.size > 1 %}
+          {{ product.featured_image | image_url: width: 600 | image_tag:
+            class: 'w-full h-full object-cover transition duration-1000 group-hover:opacity-0 group-hover:scale-105 group-focus:opacity-0 group-focus:scale-105',
+            alt: img_alt,
+            preload: true
+          }}
+        {% else %}
+          {{ product.featured_image | image_url: width: 600 | image_tag:
+            class: 'w-full h-full object-cover transition duration-1000 group-hover:scale-105 group-focus:scale-105',
+            alt: img_alt,
+            preload: true
+          }}
+        {% endif %}
       {% else %}
-        {{ product.featured_image | image_url: width: 600 | image_tag:
-          class: 'w-full h-full object-cover',
-          alt: img_alt,
-          preload: true
-        }}
+        {% if settings.show_additional_images and product.images.size > 1 %}
+          {{ product.featured_image | image_url: width: 600 | image_tag:
+            class: 'w-full h-full object-cover group-hover:opacity-0 group-focus:opacity-0',
+            alt: img_alt,
+            preload: true
+          }}
+        {% else %}
+          {{ product.featured_image | image_url: width: 600 | image_tag:
+            class: 'w-full h-full object-cover',
+            alt: img_alt,
+            preload: true
+          }}
+        {% endif %}
       {% endif %}
       {%- if settings.show_additional_images and  product.images.size > 1 -%}
         {% if hover_effect == "enhanced" %}
           {{ product.images[1] | image_url: width: 600 | image_tag:
-            class: 'w-full h-full absolute top-0 left-0 object-cover opacity-0 transition duration-1000 group-hover:opacity-100 group-hover:scale-105',
+            class: 'w-full h-full absolute top-0 left-0 object-cover opacity-0 transition duration-1000 group-hover:opacity-100 group-hover:scale-105 group-focus:opacity-100 group-focus:scale-105',
             alt: img_alt
           }}
         {% else %}
           {{ product.images[1] | image_url: width: 600 | image_tag:
-            class: 'w-full h-full absolute top-0 left-0 object-cover opacity-0 group-hover:opacity-100',
+            class: 'w-full h-full absolute top-0 left-0 object-cover opacity-0 group-hover:opacity-100 group-focus:opacity-100',
             alt: img_alt
           }}
         {% endif %}
@@ -101,7 +117,7 @@
   </div>
 
   {% if settings.enable_quick_view %}
-    <button class="quick-view absolute bottom-5 right-6" aria-label="Quick View" data-id="{{ product.id }}" aria-label="Quick View">
+    <button class="quick-view absolute bottom-5 right-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded" aria-label="Quick View" data-id="{{ product.id }}">
       <span class="svg-wrapper">
         {{- 'view-icon.svg' | inline_asset_content -}}
       </span>
@@ -118,7 +134,7 @@
   {% endcase %}
   <div class="card-content flex-1 flex flex-col justify-between py-4 px-6 {{content_alignment}}">
     <div>
-      <p class="subheading font-bold"><a href="{{ product.url }}" aria-label="{{ product.title }} detail page">{{ product.title | escape }}</a></p>
+      <p class="subheading font-bold"><a href="{{ product.url }}" aria-label="{{ product.title }} detail page" class="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded">{{ product.title | escape }}</a></p>
       {% if product.description!=blank %}
         <div class="description line-clamp-1">{{ product.description | strip }}</div>
       {% endif %}
@@ -141,7 +157,7 @@
     <div class="cartbottom flex gap-4 items-center mt-4">
         {%- if settings.enable_quick_add -%}
         <div class="relative w-max {% if settings.content_alignment == 'center' %} mx-auto {% endif %}">
-          <button class="add-to-cart cart-btn" data-id="{{ product.variants.first.id }}" aria-label="Add to Cart" id="cart_icon_{{ product.id }}" {% if is_sold_out == true %} disabled{% endif %}>
+          <button class="add-to-cart cart-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded" data-id="{{ product.variants.first.id }}" aria-label="Add to Cart" id="cart_icon_{{ product.id }}" {% if is_sold_out == true %} disabled{% endif %}>
             <span class="text-white">{{- 'cart-icon.svg' | inline_asset_content -}}</span>
           </button>
           {% assign total_quantity = 0 %}
@@ -177,7 +193,7 @@
   <!-- Quick View Modal -->
   <div id="quick-view-{{ product.id }}" class="hidden"  >
     <div class="relative variants-{{ product.id }}" data-variants='{{ product.variants | json | escape }}'>
-       <button class="close-modal absolute top-6 right-6 z-5" aria-label="Quick view close">
+       <button class="close-modal absolute top-6 right-6 z-5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded" aria-label="Quick view close">
           <svg width="40" height="42" viewBox="0 0 40 42" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect y="0.158203" width="40" height="40" rx="20" fill="black"/>
             <path d="M25.1308 14.038C25.4042 13.7647 25.8477 13.7647 26.121 14.038C26.3942 14.3114 26.3943 14.755 26.121 15.0283L20.9912 20.1582L26.121 25.288C26.3942 25.5614 26.3943 26.005 26.121 26.2783C25.8477 26.5516 25.4042 26.5514 25.1308 26.2783L20.0009 21.1484L14.871 26.2783C14.5977 26.5516 14.1542 26.5514 13.8808 26.2783C13.6074 26.0049 13.6074 25.5614 13.8808 25.288L19.0107 20.1582L13.8808 15.0283C13.6074 14.7549 13.6074 14.3114 13.8808 14.038C14.1542 13.7647 14.5977 13.7647 14.871 14.038L20.0009 19.1679L25.1308 14.038Z" fill="white"/>
@@ -227,7 +243,7 @@
                           {% endif %}
                         {% endfor %}
                         <button 
-                          class="variant-btn border border-gray-50 {% if option == 'Color' %} color-btn rounded-full {% else %} px-3 py-1 rounded {% endif %} {% unless is_available %} line-through opacity-50 pointer-events-none cursor-not-allowed {% endunless %}" 
+                          class="variant-btn border border-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 {% if option == 'Color' %} color-btn rounded-full {% else %} px-3 py-1 rounded {% endif %} {% unless is_available %} line-through opacity-50 pointer-events-none cursor-not-allowed {% endunless %}" 
                           type="button" 
                           aria-label="{{ value }}"
                           data-option-index="{{ option_index }}" 
@@ -250,7 +266,7 @@
             {% endif %}
           </div>
           {%- if is_sold_out == false -%}
-            <button class="add-to-cart font-urbanist font-semibold flex text-center justify-center items-center primary-btn !p-3.5{% if settings.layout_style == 'detached' %} mt-16 mx-4 mb-4 {% else %} mt-12{% endif %}" data-id="{{ product.variants.first.id }}" style="width:-webkit-fill-available;">
+            <button class="add-to-cart font-urbanist font-semibold flex text-center justify-center items-center primary-btn !p-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1{% if settings.layout_style == 'detached' %} mt-16 mx-4 mb-4 {% else %} mt-12{% endif %}" data-id="{{ product.variants.first.id }}" style="width:-webkit-fill-available;">
               Add to cart
               <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M21.4333 13.8798C21.1599 13.6065 20.7167 13.6065 20.4433 13.8798C20.1699 14.1532 20.1699 14.5964 20.4433 14.8698L24.8733 19.2998H13.4383C13.0517 19.2998 12.7383 19.6132 12.7383 19.9998C12.7383 20.3864 13.0517 20.6998 13.4383 20.6998H24.8733L20.4433 25.1298C20.1699 25.4032 20.1699 25.8464 20.4433 26.1198C20.7167 26.3931 21.1599 26.3931 21.4333 26.1198L27.0583 20.4948C27.1254 20.4277 27.176 20.3503 27.2102 20.2678C27.2432 20.188 27.262 20.1008 27.2632 20.0094C27.2634 19.995 27.2632 19.9806 27.2625 19.9662C27.2545 19.7984 27.1864 19.633 27.0583 19.5048L21.4333 13.8798Z" fill="currentColor"/>
@@ -271,6 +287,16 @@
   // Only run this script once per page, not for each product card
   if (!window.productRatingScriptLoaded) {
     window.productRatingScriptLoaded = true;
+    
+    // Handle keyboard navigation for product cards
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' && event.target.classList.contains('product-card')) {
+        const productLink = event.target.querySelector('a[href*="/products/"]');
+        if (productLink) {
+          productLink.click();
+        }
+      }
+    });
     
     function renderStars(rating, max = 5, color = '#000000', starClass = 'product-star-container') {
       let html = '';
