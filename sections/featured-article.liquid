@@ -22,6 +22,9 @@
     }
     {% endif %}
   }
+  .article-slider-{{ section.id }} .slick-track {
+    padding: 5px 0;
+  }
 </style>
 
 <div class="featured-articles-{{section.id}}">
@@ -41,7 +44,7 @@
       </div>
     </div>
   
-    <div class="article-slider-{{ section.id }}{% if settings.layout_style == 'detached' %} slider-column-space{% endif %}">
+    <div class="article-slider-{{ section.id }} {% if settings.layout_style == 'detached' %} slider-column-space{% endif %}">
       {% for article in section.settings.blog.articles limit: section.settings.post_limit %}
         {% render 'article-card',
           article: article,
@@ -103,6 +106,37 @@
           }
         }
       ]
+    });
+
+    // Function to update tab order for visible slides
+    function updateTabOrder() {
+      const currentSlide = slider.slick('slickCurrentSlide');
+      const slidesToShow = {{ section.settings.columns_desktop }};
+      
+      // Calculate which slides are currently visible
+      const startIndex = currentSlide;
+      const endIndex = startIndex + slidesToShow - 1;
+      
+      // Reset all slides to not focusable
+      slider.find('.slick-slide').find('[tabindex], a, button').attr('tabindex', '-1');
+      
+      // Make only the currently visible slides focusable
+      for (let i = startIndex; i <= endIndex; i++) {
+        const slide = slider.find(`.slick-slide[data-slick-index="${i}"]`);
+        if (slide.length) {
+          slide.find('[tabindex], a, button').attr('tabindex', '0');
+        }
+      }
+    }
+    
+    // Fix tab focus to start from first visible slide and manage tab order
+    setTimeout(function() {
+      updateTabOrder();
+    }, 100);
+    
+    // Update tab order when slider changes
+    slider.on('afterChange', function() {
+      updateTabOrder();
     });
   }
   function handleContainerWrapper() {

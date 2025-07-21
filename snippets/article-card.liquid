@@ -1,6 +1,6 @@
-<div class="article-card border group h-full flex flex-col justify-between {% if hidden %}hidden{% endif %}" data-page="{{ data_page }}" >
+<div onclick="window.location.href='{{ article.url }}'" tabindex="0" class="article-card border group h-full flex flex-col justify-between {% if hidden %}hidden{% endif %}" data-page="{{ data_page }}" >
     <div>
-        <a href="{{ article.url }}" class="h-60 block overflow-hidden">
+        <div class="h-60 block overflow-hidden">
             <img
                 srcset="
                     {%- if article.image.src.width >= 165 -%}{{ article.image.src | image_url: width: 165 }} 165w,{%- endif -%}
@@ -21,7 +21,7 @@
                 width="{{ article.image.width }}"
                 height="{{ article.image.height }}"
             />
-        </a>
+        </div>
         <div class="article-info p-6 flex flex-col gap-2">
             {% if article.tags.size > 0 %}
                 <div class="flex gap-2 flex-wrap">
@@ -31,7 +31,7 @@
                 </div>
             {% endif %}
         
-            <a href="{{ article.url }}"><h3 class="font-semibold text-xl !leading-normal">{{ article.title | truncate: 60  }}</h3></a>
+            <h3 class="font-semibold text-xl !leading-normal">{{ article.title | truncate: 60  }}</h3>
         
             <div class="meta flex flex-wrap gap-2 items-center text-sm">
                {% assign author_name = article.metafields.custom.author_name %}
