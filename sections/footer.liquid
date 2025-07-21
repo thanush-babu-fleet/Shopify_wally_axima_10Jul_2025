@@ -105,7 +105,7 @@
   <div class="policy-links flex flex-col items-start md:items-baseline text-base lg:flex-row gap-6 lg:gap-4 lg:border-t justify-between pt-5 lg:mt-7" style="border-color: #273025; color: {{ settings.footer_text_color }};">
     {% if section.settings.enable-currency-selector != blank %}
       <div>
-        <form method="post" action="{{ routes.cart_url }}">
+        <form method="post" action="{{ routes.cart_url }}" id="currency-form">
           <label for="currency" class="visually-hidden">Choose an option:</label> 
           <select name="currency" id="currency" class="lg:px-4 lg:py-2" 
             style="background:transparent; color: {{ settings.footer_text_color }};">
@@ -115,7 +115,7 @@
               </option>
             {% endfor %}
           </select>
-          <button type="submit" class="sr-only">Submit</button>
+          <button type="submit" class="sr-only" tabindex="-1" aria-hidden="true">Submit</button>
         </form>
       </div>
     {% endif %}
@@ -144,8 +144,9 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // Accordion toggle functionality
     document.querySelectorAll(".accordion-toggle").forEach((toggle) => {
-      toggle.addEventListener("click", function () {
+      function toggleAccordion() {
         let content = this.nextElementSibling;
         let icon = this.querySelector(".accordion-icon svg");
   
@@ -156,8 +157,40 @@
         } else {
           icon.style.transform = "rotate(180deg)";
         }
+      }
+
+      // Click event
+      toggle.addEventListener("click", toggleAccordion);
+      
+      // Enter key event
+      toggle.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " " || e.keyCode === 13 || e.keyCode === 32) {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleAccordion.call(this);
+        }
       });
     });
+
+    // Currency selector functionality
+    const currencyForm = document.getElementById('currency-form');
+    const currencySelect = document.getElementById('currency');
+    
+    if (currencyForm && currencySelect) {
+      // Prevent form submission on Enter key only for the select element
+      currencySelect.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.click();
+        }
+      });
+
+      // Handle currency change
+      currencySelect.addEventListener('change', function() {
+        currencyForm.submit();
+      });
+    }
   });
 </script>
 
